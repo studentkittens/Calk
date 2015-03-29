@@ -1,0 +1,4 @@
+flask
+flask-bootstrap  # bootstrap extension   
+flask-appconfig  # flask configuration handling
+flask-wtf        # input validation

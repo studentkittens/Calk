@@ -1,0 +1,15 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/utils.html" as util %}
+
+{% block content %}
+    <div class="container">
+        <h1>Hello, world!</h1>
+        <h2>This is the sample form (basic)</h2>
+        <h3>And as a horizontal form {{user}} </h3>
+    </div>
+    {{util.flashed_messages()}}
+{% endblock %}
+
+{% block head %}
+{{super()}}
+{% endblock %}
