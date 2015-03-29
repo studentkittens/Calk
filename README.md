@@ -1,2 +1,2 @@
-# Calk
+# calk
 A simple mpd webclient.
