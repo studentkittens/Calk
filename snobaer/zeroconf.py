@@ -5,15 +5,16 @@ from gi.repository import Moose
 from gi.repository import GLib
 
 import sys
+import logging
+
+LOGGER = logging.getLogger('zeroconf')
 
 
 def print_server(browser):
-    print('-- SERVER LIST --')
-    print()
+    logging.info('-- SERVER LIST --')
     for server in browser:
         for attr, value in server:
-            print('{:>10} : {}'.format(attr, value))
-        print()
+            logging.info('{:>10} : {}'.format(attr, value))
 
 
 def zeroconf_state_changed(browser):
@@ -25,19 +26,24 @@ def zeroconf_state_changed(browser):
             500, lambda: print_server(browser)
         )
     elif state is Moose.ZeroconfState.ERROR:
-        print('Error', browser.get_error())
+        logging.error('Error', browser.get_error())
     elif state is Moose.ZeroconfState.ALL_FOR_NOW:
-        print('-- ALL FOUND FOR NOW --')
+        logging.info('-- ALL FOUND FOR NOW --')
     elif state is Moose.ZeroconfState.UNCONNECTED:
-        print('-- CONNECTION LOST --')
+        logging.error('-- CONNECTION LOST --')
     else:
-        print('Unknown state. ZeroconfBrowser, you\'re drunk, go home.')
+        logging.warning(
+            'Unknown state. ZeroconfBrowser, you\'re drunk, go home.'
+        )
 
 
 if __name__ == '__main__':
+    import logger
+    logger.create_logger(None)
+
     browser = Moose.ZeroconfBrowser()
     if browser.get_state() is not Moose.ZeroconfState.CONNECTED:
-        print('No avahi running, eh?')
+        logging.critical('No avahi running, eh?')
         sys.exit(0)
 
     browser.timeout_id = None
@@ -48,4 +54,4 @@ if __name__ == '__main__':
         GLib.timeout_add(2 * 1000, loop.quit)
         loop.run()
     except KeyboardInterrupt:
-        print('[Ctrl-C]')
+        logging.warning('[Ctrl-C]')
