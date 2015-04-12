@@ -47,67 +47,139 @@
 </nav> <!-- navbar end -->
 
 
+<div class="row">
+    <div class="col-xs-6">
+        <div class="text-center">
+            <h2>Artistname</h2>
+            The wonderful song playing now
+            <h3>The album of the song</h3>
+        </div>
+    </div>
+    <div class="col-xs-4">
+        </div> 
+
+    </div>
+</div>
 <!-- Columns are always 50% wide, on mobile and desktop -->
 <div class="row">
-    <div class="col-xs-6">.col-xs-6</div>
-    <div class="col-xs-6">.col-xs-6</div>
+    <div class="col-xs-6">
+        <div class="text-center">
+            <img src="http://upload.wikimedia.org/wikipedia/en/7/7b/Linkin_park_reanimation.jpg" alt="music cover" width=300px height=300px >
+        </div>
+    </div>
+    <div class="col-xs-4">
+        <div class="panel panel-default">
+            <!-- Default panel contents -->
+            <div class="panel-heading">Album currently playing</div>
+
+            <!-- Table -->
+            <table class="table">
+                <tr>
+                    <td>Song 1</td>
+                </tr>
+                <tr>
+                    <td>Song 2</td>
+                </tr>
+                <tr>
+                    <td>Song 3</td>
+                </tr>
+                <tr>
+                    <td>Song 4</td>
+                </tr>
+                <tr>
+                    <td>Song 5</td>
+                </tr>
+                <tr>
+                    <td>Song 6</td>
+                </tr>
+                <tr>
+                    <td>Song 7</td>
+                </tr>
+                <tr>
+                    <td>Song 8</td>
+                </tr>
+            </table>
+        </div> 
+
+    </div>
 </div>
 
 
 <!-- Columns start at 50% wide on mobile and bump up to 33.3% wide on desktop -->
-<div class="row">
-    <div class="col-xs-6 col-md-4">
+<nav class="navbar navbar-default navbar-fixed-bottom">
+    <div class="container-fluid">
 
-        <div class="btn-group" role="group" aria-label="...">
-            <button type="button" class="btn btn-default-lg">
-                <span class="glyphicon glyphicon-step-backward" aria-hidden="true"></span>
-            </button>
-            <button type="button" class="btn btn-default-lg">
-                <span class="glyphicon glyphicon-stop" aria-hidden="true"></span>
-            </button>
-            <button type="button" class="btn btn-default-lg" id="play-btn">
-                <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
-            </button>
-            <button type="button" class="btn btn-default-lg">
-                <span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span>
-            </button>
+        <!-- control buttons -->
+        <div class="row">
+            <div class="col-xs-6 col-md-4 text-left">
+
+                <div class="btn-group" role="group" aria-label="...">
+                    <button type="button" class="btn btn-lg navbar-btn">
+                        <span class="glyphicon glyphicon-step-backward" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="btn btn-lg navbar-btn">
+                        <span class="glyphicon glyphicon-stop" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="btn btn-lg navbar-btn" id="play-btn">
+                        <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="btn btn-lg navbar-btn">
+                        <span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- progress bar-->
+            <div class="col-xs-6 col-md-4 text-center">
+                <em>Artistname</em> - This is a beautify song
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped active navbar-progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;">
+                        <span class="sr-only">60% Complete</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- button group toggle -->
+            <div class="col-xs-6 col-md-4 text-right">
+                <div class="btn-group" role="group" aria-label="...">
+                    <button type="button" class="btn btn-lg navbar-btn">
+                        <span class="glyphicon glyphicon-random" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="btn btn-lg navbar-btn">
+                        <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="btn btn-lg navbar-btn">
+                        <span class="glyphicon glyphicon-fire" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="btn btn-lg navbar-btn">
+                        <span class="glyphicon glyphicon-tint" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
         </div>
+        <!-- button group toggle end-->
+
     </div>
-    <div class="col-xs-6 col-md-4">.col-xs-6 .col-md-4</div>
-    <div class="col-xs-6 col-md-4">
-        <div class="btn-group" role="group" aria-label="...">
-            <button type="button" class="btn btn-default-lg">
-                <span class="glyphicon glyphicon-random" aria-hidden="true"></span>
-            </button>
-            <button type="button" class="btn btn-default-lg">
-                <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
-            </button>
-            <button type="button" class="btn btn-default-lg">
-                <span class="glyphicon glyphicon-fire" aria-hidden="true"></span>
-            </button>
-            <button type="button" class="btn btn-default-lg">
-                <span class="glyphicon glyphicon-tint" aria-hidden="true"></span>
-            </button>
-        </div>
-    </div>
+</nav>
 
-    {% endblock %}
+{% endblock %}
 
-    {% block head %}
-    {{super()}}
-    {{fixes.ie8()}}
-    {% endblock %}
+{% block head %}
+{{super()}}
+{{fixes.ie8()}}
+{% endblock %}
 
-    {% block scripts %}
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    <script src="{{url_for('static', filename='btn.js')}}"></script>
-    {{super()}}
-    {% endblock %}
+{% block scripts %}
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="{{url_for('static', filename='btn.js')}}"></script>
+{{super()}}
+{% endblock %}
 
 
-    {% block styles %}
-    {{super()}}
-    <style>
+{% block styles %}
+{{super()}}
+<style>
 body {padding-top: 70px;}
-    </style>
-    {% endblock %}
+.progress {margin-top: 15px;}
+</style>
+{% endblock %}
