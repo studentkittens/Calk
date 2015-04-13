@@ -8,3 +8,4 @@ pyxdg            # for defining the correct cache path (optional)
 colorlog         # colorful log (optional)
 mutagen          # for mpd test server (optional)
 nose             # For running tests
+pyaml            # needed for config.py
