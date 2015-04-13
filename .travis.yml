@@ -7,7 +7,7 @@ python:
 install: 
     - "pip install -r requirements.txt"
 # command to run tests
-script: nosetests3
+script: nosetests
 
 notifications:
   email:
