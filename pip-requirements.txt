@@ -1,8 +1,9 @@
-flask
+flask            # Routing/Delivery
 flask-bootstrap  # bootstrap extension   
 flask-appconfig  # flask configuration handling
 flask-wtf        # input validation
-tornado
+tornado          # Webserver/Websockets
 
-pyxdg
-colorlog
+pyxdg            # for defining the correct cache path (optional)
+colorlog         # colorful log (optional)
+mutagen          # for mpd test server (optional)
