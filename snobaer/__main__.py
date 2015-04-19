@@ -66,7 +66,7 @@ tornado_app = Application([
 
 
 if __name__ == "__main__":
-    tornado_app.listen(8080)
+    tornado_app.listen(8080, address='0.0.0.0')
 
     try:
         IOLoop.instance().start()
