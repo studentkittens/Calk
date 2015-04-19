@@ -5,8 +5,6 @@
 {% block content %}
 {{super()}}
 
-
-
 <nav class="navbar navbar-default navbar-fixed-top">
     <div class="container-fluid">
         <!-- Brand and toggle get grouped for better mobile display -->
@@ -48,68 +46,82 @@
 </nav> <!-- navbar end -->
 
 
-<div class="row">
-    <div class="col-xs-6">
-        <div class="text-center">
-            <h2>Artistname</h2>
-            The wonderful song playing now
-            <h3>The album of the song</h3>
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="text-center">
+                <h2>Artistname</h2>
+                The wonderful song playing now
+                <h3>The album of the song</h3>
+            </div>
+        </div>
+        <div class="col-xs-6">
+
+        </div> 
+    </div>
+
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="text-center">
+                <img src="http://upload.wikimedia.org/wikipedia/en/7/7b/Linkin_park_reanimation.jpg" alt="music cover" width=300px height=300px >
+            </div>
+        </div>
+        <div class="col-xs-4">
+            <div class="panel panel-default">
+                <!-- Default panel contents -->
+                <div class="panel-heading">Album currently playing</div>
+
+                <!-- Table -->
+                <table class="table table-striped">
+                    <tr>
+                        <td>Song 1</td>
+                    </tr>
+                    <tr>
+                        <td>Song 2</td>
+                    </tr>
+                    <tr>
+                        <td>Song 3</td>
+                    </tr>
+                    <tr>
+                        <td>Song 4</td>
+                    </tr>
+                    <tr>
+                        <td>Song 5</td>
+                    </tr>
+                    <tr>
+                        <td>Song 6</td>
+                    </tr>
+                    <tr>
+                        <td>Song 7</td>
+                    </tr>
+                    <tr>
+                        <td>Song 8</td>
+                    </tr>
+                </table>
+            </div> 
         </div>
     </div>
-    <div class="col-xs-4">
-        </div> 
 
-    </div>
-</div>
-<!-- Columns are always 50% wide, on mobile and desktop -->
-<div class="row">
-    <div class="col-xs-6">
-        <div class="text-center">
-            <img src="http://upload.wikimedia.org/wikipedia/en/7/7b/Linkin_park_reanimation.jpg" alt="music cover" width=300px height=300px >
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="text-center">
+                <span class="label label-default">MPD</span>
+                <span class="label label-info">44.1KHz</span>
+                <span class="label label-info">FLAC</span>
+                <span class="label label-info">DR14</span>
+            </div>
         </div>
-    </div>
-    <div class="col-xs-4">
-        <div class="panel panel-default">
-            <!-- Default panel contents -->
-            <div class="panel-heading">Album currently playing</div>
-
-            <!-- Table -->
-            <table class="table">
-                <tr>
-                    <td>Song 1</td>
-                </tr>
-                <tr>
-                    <td>Song 2</td>
-                </tr>
-                <tr>
-                    <td>Song 3</td>
-                </tr>
-                <tr>
-                    <td>Song 4</td>
-                </tr>
-                <tr>
-                    <td>Song 5</td>
-                </tr>
-                <tr>
-                    <td>Song 6</td>
-                </tr>
-                <tr>
-                    <td>Song 7</td>
-                </tr>
-                <tr>
-                    <td>Song 8</td>
-                </tr>
-            </table>
+        <div class="col-xs-6">
         </div> 
-
     </div>
-</div>
 
+</div>
 
 <!-- Columns start at 50% wide on mobile and bump up to 33.3% wide on desktop -->
 <nav class="navbar navbar-default navbar-fixed-bottom">
-    <div class="container-fluid">
 
+    <div class="container-fluid">
         <!-- control buttons -->
         <div class="row">
             <div class="col-xs-6 col-md-4 text-left">
