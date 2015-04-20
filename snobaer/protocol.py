@@ -67,8 +67,16 @@ def parse_doc(document):
 
     # Valid documents have at least a type and detail.
     if doc_type is None or detail is None:
-        LOGGER.error('document is malformed:\n' + document)
+        LOGGER.error('document is malformed:\n' + str(document))
         return
+
+
+def parse_message(message):
+    try:
+        return parse_doc(json.loads(mesage))
+    except ValueError as err:
+        LOGGER.error('Unable to parse json message:\n' + message)
+
 
 
 ########################

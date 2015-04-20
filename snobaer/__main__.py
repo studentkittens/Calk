@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
     loop = GLibIOLoop()
     loop.install()
-    tornado_app.listen(8080)
+    tornado_app.listen(8080, address='0.0.0.0')
 
     try:
         LOGGER.info('Running on localhost:8080')
