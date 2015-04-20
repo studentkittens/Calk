@@ -49,7 +49,7 @@ class Heartbeat:
 
         now = self._current_time_ms()
         with self._client.reffed_status() as status:
-            if status is not None and status.get_state() is Moose.State.PLAY:
+            if status and status.get_state() is Moose.State.PLAYING:
                 self._curr_listened += now - self._last_tick
 
         with self._client.reffed_current_song() as song:
@@ -93,7 +93,7 @@ class Heartbeat:
         elapsed = 0
         with self._client.reffed_status() as status:
             if status is not None:
-                if status.get_state() is Moose.State.PLAY:
+                if status.get_state() is Moose.State.PLAYING:
                     offset = self._current_time_ms() - self._last_update_tmstp
                 else:
                     offset = 0
@@ -129,7 +129,7 @@ class Heartbeat:
 
     def _on_client_event(self, client, event):
         'client-event callback - updates the update timestamp'
-        if not event & (Moose.Idle.IDLE_PLAYER | Moose.Idle.IDLE_SEEK):
+        if not event & (Moose.Idle.PLAYER | Moose.Idle.SEEK):
             return
 
         song_queue_pos = -1

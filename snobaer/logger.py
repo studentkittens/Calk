@@ -5,11 +5,14 @@
 import logging
 import logging.handlers
 
+# External:
+from gi.repository import GObject
+from gi.repository import Moose
 
-# Loggin related
+
 COLORED_FORMAT = "%(asctime)s%(reset)s %(log_color)s[logsymbol] \
-%(levelname)-8s%(reset)s %(bold_blue)s[%(filename)s:%(lineno)3d]%(reset)s \
-%(bold_black)s%(name)s:%(reset)s %(message)s"
+%(levelname)-8s%(reset)s \
+%(bold_black)s%(name)s:%(lineno)d:%(reset)s %(message)s"
 
 SIMPLE_FORMAT = "%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)3d] \
 %(name)s: %(message)s"
@@ -87,19 +90,39 @@ def create_logger(name=None, path=None, verbosity=logging.DEBUG):
     return logger
 
 
-def create_root_logger(config, client):
-    class InternalLogCatcher(GObject.Object):
-        __gsignals__ = {
-            'log-message': (
-                GObject.SIGNAL_RUN_FIRST,
-                None,
-                (str, str, str)
-            )
-        }
+MOOSE_TO_PYTHON_LOGLEVEL = {
+    "Critical": logging.Logger.critical,
+    "Error": logging.Logger.error,
+    "Warning": logging.Logger.warning,
+    "Message": logging.Logger.info,
+    "Info": logging.Logger.info,
+    "Debug": logging.Logger.debug,
+    "Unknown": logging.Logger.warning,
+}
 
-    catcher = InternalLogCatcher()
-    catcher.connect('log-message', log_message)
-    Moose.misc_catch_external_logs(catcher)
+
+
+class InternalLogCatcher(GObject.Object):
+    __gsignals__ = {
+        'log-message': (
+            GObject.SIGNAL_RUN_FIRST,
+            None,
+            (str, str, str)
+        )
+    }
+
+    def __init__(self):
+        GObject.Object.__init__(self)
+        self._loggers = {}
+        self.connect('log-message', InternalLogCatcher._on_log_message)
+        Moose.misc_catch_external_logs(self)
+
+    def _on_log_message(self, domain, level, msg):
+        logger = self._loggers.get(domain)
+        if logger is None:
+            logger = self._loggers[domain] = logging.getLogger(domain)
+
+        MOOSE_TO_PYTHON_LOGLEVEL[level](logger, msg)
 
 
 if __name__ == '__main__':

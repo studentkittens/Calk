@@ -30,3 +30,10 @@ def create_file_structure(cfg):
 
     log_file = os.path.join(config_dir, 'app.log')
     cfg['fs.log_file'] = log_file
+
+
+if __name__ == '__main__':
+    from config import Config
+
+    config = Config()
+    create_file_structure(config)
