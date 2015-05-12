@@ -45,7 +45,7 @@ class EchoWebSocket(WebSocketHandler):
         print("WebSocket closed")
 
 
-tornado_app = Application([
+TORNADO_APP = Application([
     (r"/ws", EchoWebSocket),
     (r".*", FallbackHandler, dict(fallback=WSGIContainer(flask_app)))
 ])
@@ -113,7 +113,7 @@ if __name__ == "__main__":
 
     loop = GLibIOLoop()
     loop.install()
-    tornado_app.listen(8080, address='0.0.0.0')
+    TORNADO_APP.listen(8080, address='0.0.0.0')
 
     try:
         LOGGER.info('Running on localhost:8080')

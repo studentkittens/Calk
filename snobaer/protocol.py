@@ -96,7 +96,7 @@ def serialize_state(state):
 
 
 def serialize_status(status, detail='timer'):
-    # Just serialize all the
+    # Just serialize all the status data
     status_data = {
         'type': 'status',
         'detail': detail,
