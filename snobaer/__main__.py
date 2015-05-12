@@ -55,6 +55,14 @@ def log_client_event(client, events):
     LOGGER.debug('client event: {}'.format(Moose.Idle(events)))
 
 
+def reconnect_client(client):
+    if client.connect_to(cfg['mpd.host'], cfg['mpd.port'], 200):
+        client.reconnect_id = None
+        return False
+
+    return True
+
+
 def log_connection_event(client, server_changed):
     LOGGER.warning('connection changed: connected={} server-changed={}'.format(
         "yes" if client.is_connected() else "no",
@@ -63,13 +71,15 @@ def log_connection_event(client, server_changed):
 
     if client.is_connected() is False:
         LOGGER.warning('Attempting reconnect in 2 seconds.')
-        GLib.timeout_add(
-            2000,
-            lambda: not client.connect_to(cfg['mpd.host'], cfg['mpd.port'], 200)
-        )
+        if client.reconnect_id is None:
+            client.reconnect_id = GLib.timeout_add(
+                2000, reconnect_client, client
+            )
+
 
 def create_client(cfg):
     client = Moose.Client.new(Moose.Protocol.DEFAULT)
+    client.reconnect_id = None
     client.connect('connectivity', log_connection_event)
     client.connect('client-event', log_client_event)
 
