@@ -10,6 +10,7 @@ from snobaer.fs import create_file_structure
 from snobaer.web import flask_app
 from snobaer.config import Config
 from snobaer.logger import InternalLogCatcher, create_logger
+from snobaer.protocol import serialize_status
 from snobaer.mainloop import GLibIOLoop
 from snobaer.heartbeat import Heartbeat
 from snobaer.commandline import parse_arguments
@@ -24,43 +25,40 @@ from gi.repository import Moose
 from gi.repository import GLib
 
 from tornado.wsgi import WSGIContainer
-from tornado.ioloop import IOLoop
 from tornado.web import FallbackHandler, Application
-from tornado.websocket import WebSocketHandler
+from tornado.websocket import WebSocketHandler, WebSocketClosedError
 
 
 class EchoWebSocket(WebSocketHandler):
+    def initialize(self, client):
+        client.connect('client-event', self.on_client_event)
+
     def open(self):
         print("WebSocket opened")
 
     def on_message(self, message):
         self.write_message(u"You said: " + message)
-        self.repeat()
 
-    def repeat(self):
-        self.write_message("Annoy you!")
-        IOLoop.instance().call_later(1, self.repeat)
+    def on_client_event(self, client, event):
+        try:
+            with client.reffed_status() as status:
+                print('INREF')
+                if status is not None:
+                    json_status = serialize_status(status)
+                    print("SERIUS")
+                    print(json_status)
+                    self.write_message(json_status)
+        except WebSocketClosedError:
+            self.close()
 
     def on_close(self):
         print("WebSocket closed")
-
-
-TORNADO_APP = Application([
-    (r"/ws", EchoWebSocket),
-    (r".*", FallbackHandler, dict(fallback=WSGIContainer(flask_app)))
-])
+        self.client.disconnect_by_func(self.on_client_event)
 
 
 def log_client_event(client, events):
     LOGGER.debug('client event: {}'.format(Moose.Idle(events)))
-
-
-def reconnect_client(client):
-    if client.connect_to(cfg['mpd.host'], cfg['mpd.port'], 200):
-        client.reconnect_id = None
-        return False
-
-    return True
+    print('I survived the client event')
 
 
 def log_connection_event(client, server_changed):
@@ -71,15 +69,14 @@ def log_connection_event(client, server_changed):
 
     if client.is_connected() is False:
         LOGGER.warning('Attempting reconnect in 2 seconds.')
-        if client.reconnect_id is None:
-            client.reconnect_id = GLib.timeout_add(
-                2000, reconnect_client, client
-            )
+        GLib.timeout_add(
+            2000,
+            lambda: not client.connect_to(cfg['mpd.host'], cfg['mpd.port'], 200)
+        )
 
 
 def create_client(cfg):
     client = Moose.Client.new(Moose.Protocol.DEFAULT)
-    client.reconnect_id = None
     client.connect('connectivity', log_connection_event)
     client.connect('client-event', log_client_event)
 
@@ -113,7 +110,12 @@ if __name__ == "__main__":
 
     loop = GLibIOLoop()
     loop.install()
-    TORNADO_APP.listen(8080, address='0.0.0.0')
+
+    tornado_app = Application([
+        (r"/ws", EchoWebSocket, {'client': client}),
+        (r".*", FallbackHandler, dict(fallback=WSGIContainer(flask_app)))
+    ])
+    tornado_app.listen(8080, address='0.0.0.0')
 
     try:
         LOGGER.info('Running on localhost:8080')

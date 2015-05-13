@@ -55,7 +55,7 @@
 # Database view
 ###################
 -->
-<div id="view-database" class="well inner-content" aria-expanded="true">
+<div id="view-database" class="well full inner-content" aria-expanded="true">
     <div class="container-fluid">
 
         <div class="row-fluid">
@@ -196,9 +196,7 @@
 # Playing view
 ###################
 -->
-<div id="view-playing" class="well" aria-expanded="true">
-    <div class="container-fluid">
-
+<div id="view-playing" class="well fill inner-contentn" aria-expanded="true">
         <div class="row-fluid">
             <div class="col-xs-6">
                 <div class="text-center">
@@ -278,9 +276,8 @@
 # Queue view
 ###################
 -->
-<div id="view-queue" class="well inner-content" aria-expanded="true">
+<div id="view-queue" class="well fill inner-content" aria-expanded="true">
     <div class="container-fluid">
-
         <div class="row-fluid">
             <div class="col-xs-6 col-md-6 text-left">
                 <div class="input-group">
@@ -439,7 +436,6 @@
                 <em>Artistname</em> - This is a beautify song
                 <div id="progressbar" class="progress">
                     <div class="progress-bar active navbar-progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;">
-                        <span class="sr-only">60% Complete</span>
                     </div>
                 </div>
             </div>
@@ -447,16 +443,16 @@
             <!-- button group toggle -->
             <div class="col-xs-6 col-md-4 text-right">
                 <div class="btn-group-lg" role="group" aria-label="...">
-                    <button type="button" class="btn btn-lg navbar-btn">
+                    <button id="btn-random" type="button" class="btn btn-lg navbar-btn">
                         <span class="glyphicon glyphicon-random" aria-hidden="true"></span>
                     </button>
-                    <button type="button" class="btn btn-lg navbar-btn">
+                    <button id="btn-repeat" type="button" class="btn btn-lg navbar-btn">
                         <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
                     </button>
-                    <button type="button" class="btn btn-lg navbar-btn">
+                    <button id="btn-consume" type="button" class="btn btn-lg navbar-btn">
                         <span class="glyphicon glyphicon-fire" aria-hidden="true"></span>
                     </button>
-                    <button type="button" class="btn btn-lg navbar-btn">
+                    <button id="btn-single" type="button" class="btn btn-lg navbar-btn">
                         <span class="glyphicon glyphicon-tint" aria-hidden="true"></span>
                     </button>
                 </div>
@@ -476,20 +472,14 @@
 
 {% block scripts %}
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-<script src="{{url_for('static', filename='btn.js')}}"></script>
+<script src="{{url_for('static', filename='logic.js')}}"></script>
 {{super()}}
 {% endblock %}
 
 
 {% block styles %}
 {{super()}}
-<style>
-body {padding-top: 70px;}
-body {padding-bottom: 70px;}
-html,body {height: 100%; }
-.progress {margin-top: 15px;}
-.inner-content {height: 97%;}
-#cover {display: inline-block;}
-#cover {display: inline-block;}
-</style>
+<link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}" type="text/css">
+<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css" rel="stylesheet">
+<link rel="stylesheet" href="{{url_for('static', filename='custom.css')}}" type="text/css">
 {% endblock %}

@@ -1,4 +1,5 @@
 VIEWS = ['database', 'playing', 'queue']
+SERVER_URL = "ws://localhost:8080/ws"
 
 view_switch = (name) ->
   class_name = '#view-' + name
@@ -7,14 +8,21 @@ view_switch = (name) ->
     elem = $(view_name)
     if view_name == class_name then elem.show() else elem.hide()
 
+#####################
+#  WEBSOCKET STUFF  #
+#####################
+
 on_socket_open = (msg) ->
   console.log(msg)
 
 on_socket_close = (msg) ->
-  console.log(msg)
+  console.log(status)
 
 on_socket_message = (msg) ->
   console.log(msg)
+  status = JSON.parse msg.data
+  console.log(status)
+
 
 #######################################################
 #  MAIN (or how main-y you can go with CoffeeScript)  #
@@ -41,7 +49,8 @@ $ ->
       $('#switch-' + view + '-view').click -> view_switch(view)
 
   # Connect the event socket:
-  socket = new WebSocket "ws://localhost:8080/ws"
+  # socket = create_websocket
+  socket = new WebSocket SERVER_URL
   socket.onopen = on_socket_open
   socket.onclose = on_socket_close
   socket.onmessage = on_socket_message

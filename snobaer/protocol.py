@@ -46,6 +46,9 @@ import logging
 
 LOGGER = logging.getLogger('proto')
 
+
+from gi.repository import Moose
+
 ########################
 #   CLIENT -> SERVER   #
 ########################
@@ -83,11 +86,13 @@ def parse_message(message):
 #   SERVER -> CLIENT   #
 ########################
 
-
 def serialize_song(song):
-    # Only serialize the most needed data for now.
-    keys = ['artist', 'album', 'title', 'id']
-    return {key: getattr(song.props, key) for key in keys}
+    if song is not None:
+        # Only serialize the most needed data for now.
+        keys = ['artist', 'album', 'title', 'id']
+        return {key: getattr(song.props, key) for key in keys}
+
+    return {}
 
 
 def serialize_state(state):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # encoding:utf8
 
-from flask import Flask, render_template
+from flask import Flask, render_template, Response
 from flask_appconfig import AppConfig
 from flask_bootstrap import Bootstrap
 
@@ -20,5 +20,11 @@ flask_app = create_app()
 
 
 @flask_app.route('/')
-def index(name=None):
-    return render_template('index.html', user=name)
+def index():
+    return render_template('index.html')
+
+
+# TODO: Dummy handler for fixing "missing" fonts.
+@flask_app.route('/fonts/<name>')
+def fonts_dummy(name=None):
+    return Response('', mimetype='font/opentype')
