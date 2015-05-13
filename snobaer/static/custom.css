@@ -1,0 +1,26 @@
+body {
+    padding-top: 33px;
+    padding-bottom: 33px;
+}
+
+html,body {
+        height: 100%; 
+}
+// 
+.progress {
+    margin-top: 15px;
+}
+
+.inner-content {
+    padding-top: 70px;
+    padding-bottom: 70px;
+}
+
+#cover {
+    display: inline-block;
+}
+
+#active-button {
+    color: red;
+    background-color: red;
+}
