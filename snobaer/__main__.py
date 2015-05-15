@@ -10,7 +10,8 @@ from snobaer.fs import create_file_structure
 from snobaer.web import flask_app
 from snobaer.config import Config
 from snobaer.logger import InternalLogCatcher, create_logger
-from snobaer.protocol import serialize_status
+from snobaer.protocol import serialize_status, parse_message
+from snobaer.metadata import configure_query
 from snobaer.mainloop import GLibIOLoop
 from snobaer.heartbeat import Heartbeat
 from snobaer.commandline import parse_arguments
@@ -32,24 +33,34 @@ from tornado.websocket import WebSocketHandler, WebSocketClosedError
 class EchoWebSocket(WebSocketHandler):
     def initialize(self, client):
         client.connect('client-event', self.on_client_event)
+        self.client = client
 
     def open(self):
-        print("WebSocket opened")
+        LOGGER.debug("WebSocket opened")
+        self.on_client_event(self.client, Moose.Idle.PLAYER)
+
+    def on_message_processed(self, json_doc):
+        try:
+            self.write_message(json_doc)
+        except Exception as err:
+            LOGGER.error("Unable to write back message:" + str(json_doc) + str(err))
 
     def on_message(self, message):
-        self.write_message(u"You said: " + message)
+        print('Received', message)
+        parse_message(self.client, message, self.on_message_processed)
 
     def on_client_event(self, client, event):
-        try:
-            with client.reffed_status() as status:
-                print('INREF')
-                if status is not None:
-                    json_status = serialize_status(status)
-                    print("SERIUS")
-                    print(json_status)
-                    self.write_message(json_status)
-        except WebSocketClosedError:
-            self.close()
+        with client.reffed_status() as status:
+            print('INREF', status.get_current_song())
+            if status is None:
+                return
+
+            json_status = serialize_status(status, event)
+            print(json_status)
+            try:
+                self.write_message(json_status)
+            except WebSocketClosedError:
+                self.close()
 
     def on_close(self):
         print("WebSocket closed")
@@ -67,24 +78,26 @@ def log_connection_event(client, server_changed):
         "yes" if server_changed else "no"
     ))
 
+    # Schedule a reconnect if needed:
     if client.is_connected() is False:
         LOGGER.warning('Attempting reconnect in 2 seconds.')
-        GLib.timeout_add(
-            2000,
-            lambda: not client.connect_to(cfg['mpd.host'], cfg['mpd.port'], 200)
-        )
+        host, port = cfg['mpd.host'], cfg['mpd.port']
+        GLib.timeout_add(2000, lambda: not client.connect_to(host, port, 200))
 
 
 def create_client(cfg):
     client = Moose.Client.new(Moose.Protocol.DEFAULT)
     client.connect('connectivity', log_connection_event)
     client.connect('client-event', log_client_event)
+    client.props.timer_interval = 1.0
+    client.timer_set_active(True)
 
     client.connect_to(cfg['mpd.host'], cfg['mpd.port'], 200)
 
     # Monkey patch some useful python side properties:
     client.heartbeat = Heartbeat(client)
     client.store = Moose.Store.new(client)
+    client.metadata = Moose.Metadata(database_location=cfg['fs.cache_dir'])
     return client
 
 

@@ -118,6 +118,25 @@ if __name__ == '__main__':
         LOGGER.info("Hah, Im running!")
         return True
 
+    from gi.repository import Moose
+    from snobaer.heartbeat import Heartbeat
+
+    def create_client():
+        client = Moose.Client.new(Moose.Protocol.DEFAULT)
+        client.props.timer_interval = 1.0
+        client.timer_set_active(True)
+
+        client.connect_to('localhost', 6666, 200)
+
+        # Monkey patch some useful python side properties:
+        client.heartbeat = Heartbeat(client)
+        client.store = Moose.Store.new(client)
+        return client
+
+    c = create_client()
+    c.connect('client-event', lambda *_: print(c.ref_status().get_current_song()))
+
+
     GLib.timeout_add(1000, timeout_event)
 
     application.listen(8888)

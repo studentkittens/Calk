@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # encoding:utf8
 
-from flask import Flask, render_template, Response
+from flask import Flask, render_template, Response, send_from_directory, abort, url_for
 from flask_appconfig import AppConfig
 from flask_bootstrap import Bootstrap
 
 
 def create_app(configfile=None):
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='static')
     AppConfig(app, configfile)
     Bootstrap(app)
 

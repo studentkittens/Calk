@@ -41,30 +41,66 @@ Server -> Client types:
 
 """
 
+# Stdlib:
 import json
 import logging
 
 LOGGER = logging.getLogger('proto')
 
-
+# External:
 from gi.repository import Moose
 
 ########################
 #   CLIENT -> SERVER   #
 ########################
 
+def copy_header(document):
+    return {
+        'type': document['type'],
+        'detail': document['detail']
+    }
 
-def parse_mpd_command(document):
-    # get command and params[0]
-    # send to moose_client_send
+
+def _parse_mpd_command(client, document, callback):
+    client.send(document['detail'])
+
+
+def _parse_store_command(client, document, callback):
     pass
 
 
-def parse_store_command(document):
-    pass
+def _parse_metadata_command(client, document, callback):
+    query = Moose.MetadataQuery(
+        type=document.get('get_type'),
+        artist=document.get('artist'),
+        album=document.get('album'),
+        title=document.get('title'),
+        download=False
+    )
+
+    def _done(_, query):
+        response = copy_header(document)
+        response['urls'] = []
+
+        for cache in query.get_results():
+            metadata = cache.props.data.get_data()
+            response['urls'].append(metadata.decode('utf-8'))
+
+        callback(response)
+        client.metadata.disconnect_by_func(_done)
+
+    client.metadata.connect('query-done', _done)
+    LOGGER.debug('Commited metadata query: ' + str(document))
+    client.metadata.commit(query)
 
 
-def parse_doc(document):
+HANDLERS = {
+    'metadata': _parse_metadata_command,
+    'mpd': _parse_mpd_command
+}
+
+
+def _parse_doc(client, document, callback):
     doc_type = document.get('type')
     detail = document.get('detail')
 
@@ -73,26 +109,33 @@ def parse_doc(document):
         LOGGER.error('document is malformed:\n' + str(document))
         return
 
+    handler = HANDLERS.get(doc_type)
+    if handler is None:
+        LOGGER.error('No such handler type: ' + str(doc_type))
+        return
 
-def parse_message(message):
+    return handler(client, document, callback)
+
+
+def parse_message(client, message, callback):
     try:
-        return parse_doc(json.loads(mesage))
+        return _parse_doc(client, json.loads(message), callback)
     except ValueError as err:
-        LOGGER.error('Unable to parse json message:\n' + message)
-
+        LOGGER.error('Unable to parse json message:\n' + message + str(err))
 
 
 ########################
 #   SERVER -> CLIENT   #
 ########################
 
-def serialize_song(song):
-    if song is not None:
-        # Only serialize the most needed data for now.
-        keys = ['artist', 'album', 'title', 'id']
-        return {key: getattr(song.props, key) for key in keys}
 
-    return {}
+def serialize_song(song):
+    if song is None:
+        return {}
+
+    # Only serialize the most needed data for now.
+    keys = ['artist', 'album', 'title', 'id']
+    return {key: getattr(song.props, key) for key in keys}
 
 
 def serialize_state(state):
@@ -100,7 +143,7 @@ def serialize_state(state):
     return Moose.State(state).value_nick
 
 
-def serialize_status(status, detail='timer'):
+def serialize_status(status, event=None, detail='timer'):
     # Just serialize all the status data
     status_data = {
         'type': 'status',
@@ -110,6 +153,9 @@ def serialize_status(status, detail='timer'):
         }
     }
 
+    status_data['status']['events'] = Moose.Idle(event).value_nicks if event else []
+
+    print(status.get_current_song())
     status_data['status']['state'] = serialize_state(status.props.state)
     status_data['status']['song'] = serialize_song(status.get_current_song())
     return status_data
@@ -124,7 +170,6 @@ def serialize_playlist(playlist, detail='queue'):
 
 
 if __name__ == '__main__':
-    from gi.repository import Moose
     import time
 
     client = Moose.Client.new(Moose.Protocol.DEFAULT)

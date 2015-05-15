@@ -3,6 +3,7 @@
 
 # Stdlib:
 import os
+from concurrent.futures import Future
 
 # Internal:
 from gi.repository import Moose
