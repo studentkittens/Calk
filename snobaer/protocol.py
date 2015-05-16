@@ -50,79 +50,15 @@ LOGGER = logging.getLogger('proto')
 # External:
 from gi.repository import Moose
 
-########################
-#   CLIENT -> SERVER   #
-########################
+###############
+#  UTILITIES  #
+###############
 
 def copy_header(document):
     return {
         'type': document['type'],
         'detail': document['detail']
     }
-
-
-def _parse_mpd_command(client, document, callback):
-    client.send(document['detail'])
-
-
-def _parse_store_command(client, document, callback):
-    pass
-
-
-def _parse_metadata_command(client, document, callback):
-    query = Moose.MetadataQuery(
-        type=document.get('get_type'),
-        artist=document.get('artist'),
-        album=document.get('album'),
-        title=document.get('title'),
-        download=False
-    )
-
-    def _done(_, query):
-        response = copy_header(document)
-        response['urls'] = []
-
-        for cache in query.get_results():
-            metadata = cache.props.data.get_data()
-            response['urls'].append(metadata.decode('utf-8'))
-
-        callback(response)
-        client.metadata.disconnect_by_func(_done)
-
-    client.metadata.connect('query-done', _done)
-    LOGGER.debug('Commited metadata query: ' + str(document))
-    client.metadata.commit(query)
-
-
-HANDLERS = {
-    'metadata': _parse_metadata_command,
-    'mpd': _parse_mpd_command
-}
-
-
-def _parse_doc(client, document, callback):
-    doc_type = document.get('type')
-    detail = document.get('detail')
-
-    # Valid documents have at least a type and detail.
-    if doc_type is None or detail is None:
-        LOGGER.error('document is malformed:\n' + str(document))
-        return
-
-    handler = HANDLERS.get(doc_type)
-    if handler is None:
-        LOGGER.error('No such handler type: ' + str(doc_type))
-        return
-
-    return handler(client, document, callback)
-
-
-def parse_message(client, message, callback):
-    try:
-        return _parse_doc(client, json.loads(message), callback)
-    except ValueError as err:
-        LOGGER.error('Unable to parse json message:\n' + message + str(err))
-
 
 ########################
 #   SERVER -> CLIENT   #
@@ -167,6 +103,99 @@ def serialize_playlist(playlist, detail='queue'):
         'detail': detail,
         'songs': [serialize_song(song) for song in playlist]
     }
+
+########################
+#   CLIENT -> SERVER   #
+########################
+
+
+def _parse_mpd_command(client, document, callback):
+    client.send(document['detail'])
+
+
+def _parse_store_command(client, document, callback):
+    # TODO: Moosecat supports asynchronous queries,
+    #       so make this return a future.
+    detail = document['detail']
+    query = document['query']
+
+    if detail == 'queue':
+        playlist = client.store.query_sync(query, queue_only=True)
+    elif detail == 'database':
+        playlist = client.store.query_sync(query, queue_only=False)
+    elif detail == 'stored':
+        playlist_name = document['playlist_name']
+        # TODO
+    elif detail == 'directories':
+        pass
+        # TODO
+
+    song_list = []
+    response = copy_header(document)
+    response['target'] = document.get('target')
+    response['songs'] = song_list
+
+    for song in playlist:
+        song_list.append(serialize_song(song))
+
+    callback(response)
+
+
+def _parse_metadata_command(client, document, callback):
+    query = Moose.MetadataQuery(
+        type=document.get('get_type'),
+        artist=document.get('artist'),
+        album=document.get('album'),
+        title=document.get('title'),
+        download=False
+    )
+
+    def _done(_, query):
+        response = copy_header(document)
+        response['urls'] = []
+
+        for cache in query.get_results():
+            metadata = cache.props.data.get_data()
+            response['urls'].append(metadata.decode('utf-8'))
+
+        callback(response)
+        client.metadata.disconnect_by_func(_done)
+
+    client.metadata.connect('query-done', _done)
+    LOGGER.debug('Commited metadata query: ' + str(document))
+    client.metadata.commit(query)
+
+
+HANDLERS = {
+    'metadata': _parse_metadata_command,
+    'mpd': _parse_mpd_command,
+    'store': _parse_store_command
+}
+
+
+def _parse_doc(client, document, callback):
+    doc_type = document.get('type')
+    detail = document.get('detail')
+
+    # Valid documents have at least a type and detail.
+    if doc_type is None or detail is None:
+        LOGGER.error('document is malformed:\n' + str(document))
+        return
+
+    handler = HANDLERS.get(doc_type)
+    if handler is None:
+        LOGGER.error('No such handler type: ' + str(doc_type))
+        return
+
+    return handler(client, document, callback)
+
+
+def parse_message(client, message, callback):
+    try:
+        return _parse_doc(client, json.loads(message), callback)
+    except ValueError as err:
+        LOGGER.error('Unable to parse json message:\n' + message + str(err))
+
 
 
 if __name__ == '__main__':

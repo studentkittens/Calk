@@ -18,15 +18,8 @@ html,body {
     padding-bottom: 70px;
 }
 
-#cover-frame {
-    position: relative;
+#cover {
     display: inline-block;
-}
-
-#cover, #cover-bottom {
-    top:0;
-    left:0;
-    position: absolute;
 }
 
 #active-button {
@@ -38,7 +31,3 @@ body {padding-top: 70px;}
 body {padding-bottom: 70px;}
 html,body {height: 100%; }
 .inner-content {height: 97%;}
-
-.modal-backdrop {
-  z-index: 0;
-}

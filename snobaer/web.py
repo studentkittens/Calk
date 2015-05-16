@@ -25,6 +25,11 @@ def index():
 
 
 # TODO: Dummy handler for fixing "missing" fonts.
-@flask_app.route('/fonts/<name>')
-def fonts_dummy(name=None):
-    return Response('', mimetype='font/opentype')
+## @flask_app.route('/static/fonts/<name>')
+## def fonts_dummy(name=None):
+##     return Response('', mimetype='font/opentype')
+
+
+@flask_app.route('/css/<path:name>')
+def deliver_css(name):
+    return send_from_directory('static/css', name)
