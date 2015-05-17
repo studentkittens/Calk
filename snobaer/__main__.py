@@ -61,11 +61,12 @@ class EchoWebSocket(WebSocketHandler):
             print(serialized_data)
 
             current_song = status.get_current_song()
-            if self.last_song_id is None or self.last_song_id != current_song.props.id:
-                print('song changed!')
-                serialized_data['status']['song-changed'] = True
-                if current_song:
-                    self.last_song_id = current_song.props.id
+            if current_song is not None:
+                if self.last_song_id is None or self.last_song_id != current_song.props.id:
+                    print('song changed!')
+                    serialized_data['status']['song-changed'] = True
+                    if current_song:
+                        self.last_song_id = current_song.props.id
 
             try:
                 self.write_message(json.dumps(serialized_data))

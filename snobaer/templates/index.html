@@ -59,9 +59,8 @@
         <div class="row-fluid">
             <div class="col-xs-4 col-md-4 text-left">
                 <ol class="breadcrumb">
-                    <li><a href="#">sleipnir</a></li>
-                    <li><a href="#">clean</a></li>
-                    <li class="active">Björk</li>
+                    <li id="view-database-shown-songs"></li>
+                    <li id="view-database-total-songs"></li>
                 </ol>
             </div><!-- col -->
 
@@ -151,7 +150,14 @@
 <div id="view-queue" class="fill inner-content" aria-expanded="true">
     <div class="container-fluid">
         <div class="row-fluid">
-            <div class="col-xs-6 col-md-6 text-center">
+            <div class="col-xs-4 col-md-4 text-left">
+                <ol class="breadcrumb">
+                    <li id="view-database-shown-songs"></li>
+                    <li id="view-database-total-songs"></li>
+                </ol>
+            </div><!-- col -->
+
+            <div class="col-xs-4 col-lg-4 text-center">
                 <div class="input-group">
                     <input id="view-queue-search" type="text" class="form-control" placeholder="Search for...">
                     <span class="input-group-btn">
@@ -159,12 +165,12 @@
                     </span>
                 </div><!-- input-group -->
             </div><!-- col -->
-            <div class="col-xs-6 col-md-6 text-right">
+            <div class="col-xs-4 col-md-4 text-right">
                     <div class="btn-group" role="group" aria-label="...">
                         <button type="button" class="btn btn">
                             <span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>
                         </button>
-                        <button type="button" class="btn btn">
+                        <button type="button" class="btn">
                             <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
                         </button>
                     </div>

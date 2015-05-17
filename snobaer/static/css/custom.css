@@ -26,6 +26,10 @@ html,body {
   z-index: 0;
 }
 
+.modal-body {
+    overflow: visible;
+}
+
 .btn:focus,.btn:active {
    outline: none !important;
 }
@@ -61,4 +65,8 @@ html,body {
 
 .table-border {
     border: 1px solid #cccccc;
+}
+
+.selected-row > tr, .selected-row > td {
+    background-color: #5BC0DE;
 }

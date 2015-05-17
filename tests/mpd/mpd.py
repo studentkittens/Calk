@@ -111,6 +111,7 @@ def create_music_directory(music_dir, database):
         audio['artist'] = song.get('artist')
         audio['album'] = song.get('album')
         audio['title'] = song.get('title')
+        audio['genre'] = song.get('genre') or ''
         audio['albumartistsort'] = song.get('album_artist') or song.get('artist')
         audio['composer'] = song.get('composer')
         audio['tracknumber'] = str(song.get('track'))

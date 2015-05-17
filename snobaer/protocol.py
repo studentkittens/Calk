@@ -70,7 +70,7 @@ def serialize_song(song):
         return {}
 
     # Only serialize the most needed data for now.
-    keys = ['artist', 'album', 'title', 'id']
+    keys = ['artist', 'album', 'title', 'genre', 'id']
     return {key: getattr(song.props, key) for key in keys}
 
 
