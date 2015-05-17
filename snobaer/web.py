@@ -25,9 +25,7 @@ def create_app(configfile=None):
 
 flask_app = create_app()
 
-
-
-def get_sysstats():
+def get_sysinfo():
     stats = {}
     stats["cpu_load"] = psutil.cpu_percent()
     stats["cpu_count"] = psutil.cpu_count()
@@ -35,12 +33,14 @@ def get_sysstats():
     stats["system"] = os.uname().sysname + " " + os.uname().release
 
     mem = psutil.virtual_memory()
-    stats["mem_total"] = mem.total
-    stats["mem_free"] = mem.free
+    stats["mem_total"] = to_human_readable(mem.total)
+    stats["mem_free"] = to_human_readable(mem.free)
+    stats["mem_used_perc"] = 100 - (100 / mem.total *  mem.free)
 
     swap = psutil.swap_memory()
     stats["swap_total"] = swap.total
-    stats["swap_free"] = swap.free
+    stats["swap_free"] = 100 / swap.total * swap.free
+    stats["swap_used_perc"] = 100 - (100 / swap.total * swap.free)
 
     partitions = psutil.disk_partitions()
     stats["drives"] = []
@@ -52,12 +52,19 @@ def get_sysstats():
         }
         stats["drives"].append(drive)
 
-    stats["uptime_days"] = int(uptime.uptime() / (3600 * 24))
-    stats["uptime_hours"] = int(uptime.uptime() / 3600)
-    stats["uptime_mins"] = int(uptime.uptime() / 60 - stats["uptime_hours"] * 60)
+    days = int(uptime.uptime() / (3600 * 24))
+    hours = int(uptime.uptime() / 3600)
+    mins = int(uptime.uptime() / 60 - hours * 60)
+    stats['uptime'] = "{} days, {} hours, {}".format(days, hours, mins)
 
     return stats
 
+def to_human_readable(value):
+    for unit in ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']:
+        if value < 1024:
+            break
+        value /= 1024
+    return "{:.2f} {}".format(value, unit)
 
 @flask_app.route('/')
 def index():
