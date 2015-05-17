@@ -1,13 +1,11 @@
-/*
 body {
-    padding-top: 33px;
-    padding-bottom: 33px;
+    padding-top: 70px;
+    padding-bottom: 80px;
 }
 
 html,body {
         height: 100%; 
 }
-*/
 
 .progress {
     margin-top: 15px;
@@ -42,3 +40,17 @@ html,body {height: 100%; }
 .modal-backdrop {
   z-index: 0;
 }
+
+.btn:focus,.btn:active {
+   outline: none !important;
+}
+
+.progress {background: rgba(255, 255, 255, 1); background: -webkit-linear-gradient(top, rgba(224, 224, 224, 1) 0%, rgba(255, 255, 255, 1) 100%); background: linear-gradient(to bottom, rgba(224, 224, 224, 1) 0%, rgba(255, 255, 255, 1) 100%); border: 2px solid rgba(0, 0, 0, 0.28); border-radius: 4px; height: 15px;}
+.progress-bar-seek {background: rgba(66, 139, 202, 1); background: -webkit-linear-gradient(top, rgba(28, 149, 255, 1) 0%, rgba(66, 139, 202, 1) 100%); background: linear-gradient(to bottom, rgba(28, 149, 255, 1) 0%, rgba(66, 139, 202, 1) 100%);}
+
+#footer-song-title {
+    color: red;
+    background-color: red;
+    margin-top: -50px;
+}
+

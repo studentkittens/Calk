@@ -11,3 +11,6 @@ nose             # For running tests
 pyaml            # needed for config.py
 PyGObject        # Needed for libmoosecat et. al
 docopt           # Commandline argument parsing
+
+uptime
+psutil

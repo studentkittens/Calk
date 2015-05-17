@@ -6,26 +6,51 @@
 VIEWS = ['database', 'playing', 'queue']
 SERVER_URL = "ws://localhost:8080/ws"
 WEBSOCKET = null
-LAST_STATUS = null
 
 class PlaylistTable
-  constructor: (table_id) ->
+  constructor: (
+    table_id, @glyphicon='align-justify',
+    @fn_row=null, @fn_menu=null) ->
     @old_table = $(table_id)
     @old_table.html('')
     @table = @old_table.clone(false)
     @header_row = document.createElement('tr')
-    @old_table.append(@header_row)
+    @table.append(@header_row)
+    @aligns = []
 
-  add_header: (name, align) ->
-    header = document.createElement('td')
-    header.style.class = align
+    if @glyphicon
+      this.add_header('')
+
+  add_header: (name, align='left') ->
+    header = document.createElement('th')
+    header.className = ' text-' + align
+    header.appendChild(document.createTextNode(name))
     @header_row.appendChild(header)
+    @aligns.push align
     
-  add_row: (values) ->
+  add_row: (values, data=undefined) ->
     row = document.createElement('tr')
-    for value in values
+    if @glyphicon
+      icon = document.createElement('td')
+      icon.innerHTML = "
+        <a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\"
+            role=\"button\" aria-expanded=\"false\">
+          <span class=\"glyphicon glyphicon-#{@glyphicon}\">
+        </a>
+      "
+      $(icon).click =>
+        @fn_menu(data) if @fn_menu
+
+      row.appendChild(icon)
+
+    for value, idx in values
+      align = @aligns[idx + 1] ? 'left'
       column = document.createElement('td')
+      column.className = 'text-' + align
       column.appendChild(document.createTextNode(value))
+      $(column).click =>
+        @fn_row(data) if @fn_row != null
+
       row.appendChild(column)
       @table.append(row)
     
@@ -37,7 +62,15 @@ view_switch = (name) ->
   for view in VIEWS
     view_name = ('#view-' + view)
     elem = $(view_name)
-    if view_name == class_name then elem.show() else elem.hide()
+    button = $('#switch-' + view + '-view')
+    if view_name == class_name
+      elem.show()
+      button.fadeTo(500, 1.0)
+      button.parent().addClass('active')
+    else
+      elem.hide()
+      button.fadeTo(500, 0.5)
+      button.parent().removeClass('active')
 
 #########################
 #  MPD COMMAND HELPERS  #
@@ -66,6 +99,12 @@ mpd_query = (query, target, queue_only=true) ->
 #  STATUS UPDATING  #
 #####################
 
+format_minutes = (seconds) ->
+  secs = Math.round(seconds % 60)
+  if secs < 10
+    secs = '0' + secs
+  return Math.round(seconds / 60) + ':' + secs
+
 update_play_modes = (status) ->
   states ={
     'repeat': status.repeat, 'random': status.random,
@@ -77,7 +116,7 @@ update_play_modes = (status) ->
 update_progressbar = (status) ->
   elapsed_sec = status['elapsed-ms'] / 1000.0
   total_sec = status['total-time']
-  pg = $('#progress-bar')
+  pg = $('#seekbar')
 
   percent = 0
   if total_sec == 0
@@ -89,6 +128,9 @@ update_progressbar = (status) ->
 
   pg.attr('aria-valuenow', percent)
   pg.css('width', percent + '%')
+  $('#seekbar-label').html(
+    format_minutes(elapsed_sec) + '/' + format_minutes(total_sec)
+  )
 
   song = status.song
 
@@ -109,8 +151,7 @@ update_view_playing = (status) ->
     $('#view-playing-album').html(song.album or '🎝')
     $('#view-playing-title').html(song.title or 'Not playing')
 
-    # TODO: add song-changed flag.
-    if status.events != undefined and 'player' in status.events
+    if status['song-changed']
       WEBSOCKET.send(JSON.stringify({
         'type': 'metadata',
         'get_type': 'cover',
@@ -124,11 +165,9 @@ update_view_playing = (status) ->
         cover_elem = $('#cover')
         unless cover_elem.attr('has-cover')
           $('#cover').attr('src', '/static/nocover.jpg')
-      1000)
+      500)
       
-
       # Order a new badge of songs to display:
-      # mpd_query('*')
       mpd_query("a:\"#{song.artist}\" b:\"#{song.album}\"", 'playing', false)
 
 update_view_playing_cover = (metadata) ->
@@ -136,9 +175,11 @@ update_view_playing_cover = (metadata) ->
     $('#cover').attr('src', metadata.urls[0])
 
 update_view_playing_list = (playlist) ->
-  view = new PlaylistTable('#view-playing-list')
+  view = new PlaylistTable('#view-playing-list', '', (song_id) ->
+    mpd_send("('play-id', #{song_id})")
+  )
   for song, idx in playlist.songs
-    view.add_row(["\##{idx + 1}", song.title])
+    view.add_row(["\##{idx + 1}", song.title], song.id)
 
   view.finish()
 
@@ -146,9 +187,9 @@ update_view_playing_list = (playlist) ->
 update_view_database_list = (playlist) ->
   view = new PlaylistTable('#view-database-list')
   view.add_header('#')
-  view.add_header('Artist')
-  view.add_header('Album')
-  view.add_header('Title')
+  view.add_header('Artist', 'left')
+  view.add_header('Album', 'left')
+  view.add_header('Title', 'right')
 
   for song, idx in playlist.songs
     view.add_row(["\##{idx + 1}", song.artist, song.album, song.title])
@@ -156,10 +197,24 @@ update_view_database_list = (playlist) ->
   view.finish()
 
 
+queue_row_clicked = (song_id) ->
+  console.log('ID', song_id)
+
+queue_menu_clicked = (song_id) ->
+  console.log('Menu', song_id)
+
 update_view_queue_list = (playlist) ->
-  view = new PlaylistTable('#view-queue-list')
+  view = new PlaylistTable(
+    '#view-queue-list', 'align-left',
+    queue_row_clicked, queue_menu_clicked
+  )
+
+  view.add_header('#')
+  view.add_header('Artist', 'left')
+  view.add_header('Album', 'left')
+  view.add_header('Title', 'right')
   for song, idx in playlist.songs
-    view.add_row(["\##{idx + 1}", song.artist, song.album, song.title])
+    view.add_row(["\##{idx + 1}", song.artist, song.album, song.title], song.id)
 
   view.finish()
 
@@ -176,13 +231,12 @@ on_socket_close = (msg) ->
   console.log(status)
 
 on_socket_message = (msg) ->
-  console.log('receive', msg)
+  # console.log('receive', msg)
   update_data = JSON.parse msg.data
 
   switch update_data.type
     when 'status'  # Status update.
       status = update_data.status
-      LAST_STATUS = status
       update_play_modes(status)
       update_progressbar(status)
       update_play_buttons(status)
@@ -204,23 +258,48 @@ on_socket_message = (msg) ->
 #  MAIN (or how main-y you can go with CoffeeScript)  #
 #######################################################
 
+connect_search = (textbox, button, callback) ->
+  textbox.keypress (ev) ->
+    console.log(ev)
+    if ev.keyCode == 13
+      callback(textbox.val())
+
+  button.click ->
+    callback(textbox.val())
+
+  textbox.on('input propertychange paste', ->
+    unless textbox.val()
+      callback('*')
+  )
+
+
 $ ->
   # Hide the database and queue by default.
-  $('#view-database').hide()
-  $('#view-queue').hide()
+  view_switch('database')
 
   # Make views switchable:
   for view in VIEWS
     do (view) ->
       $('#switch-' + view + '-view').click -> view_switch(view)
 
-  # Connect the menu entries:
-  $('#menu-about').click ->
-    $('#modal-about').modal({
-      'backdrop': 'static',
-      'keyboard': true,
-      'show': true
-    })
+
+  for view in ['database', 'queue']
+    do (view) ->
+      connect_search(
+        $('#view-'+view+'-search'),
+        $('#view-'+view+'-exec'), (qry) ->
+          mpd_query(qry, view, queue_only=false)
+      )
+
+  for entry in ['about', 'sysinfo']
+    do (entry) ->
+      # Connect the menu entries:
+      $('#menu-' + entry).click ->
+        $('#modal-' + entry).modal({
+          'backdrop': 'static',
+          'keyboard': true,
+          'show': true
+        })
   
   for action in ['previous', 'stop', 'pause', 'next']
     do (action) ->

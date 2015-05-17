@@ -3,6 +3,7 @@
 
 # Stdlib:
 import sys
+import json
 import logging
 
 # Internal:
@@ -34,6 +35,7 @@ class EchoWebSocket(WebSocketHandler):
     def initialize(self, client):
         client.connect('client-event', self.on_client_event)
         self.client = client
+        self.last_song_id = None
 
     def open(self):
         LOGGER.debug("WebSocket opened")
@@ -55,10 +57,18 @@ class EchoWebSocket(WebSocketHandler):
             if status is None:
                 return
 
-            json_status = serialize_status(status, event)
-            print(json_status)
+            serialized_data = serialize_status(status, event)
+            print(serialized_data)
+
+            current_song = status.get_current_song()
+            if self.last_song_id is None or self.last_song_id != current_song.props.id:
+                print('song changed!')
+                serialized_data['status']['song-changed'] = True
+                if current_song:
+                    self.last_song_id = current_song.props.id
+
             try:
-                self.write_message(json_status)
+                self.write_message(json.dumps(serialized_data))
             except WebSocketClosedError:
                 self.close()
 
