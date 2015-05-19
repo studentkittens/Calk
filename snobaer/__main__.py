@@ -53,9 +53,9 @@ class EchoWebSocket(WebSocketHandler):
 
     def on_client_event(self, client, event):
         with client.reffed_status() as status:
-            print('INREF', status.get_current_song())
             if status is None:
                 return
+            print('INREF', status.get_current_song())
 
             serialized_data = serialize_status(status, event)
             print(serialized_data)

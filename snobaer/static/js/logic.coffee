@@ -9,7 +9,7 @@ LAST_SONG_ID = -1
 
 class PlaylistTable
   constructor: (
-    table_id, @glyphicon='align-justify',
+    table_id, @glyphicon='plus',
     @fn_row=null, @fn_menu=null) ->
     @old_table = $(table_id)
     @old_table.html('')
@@ -57,11 +57,12 @@ class PlaylistTable
 
     @row_count += 1
     return row
-    
+  
+  length: ->
+    @row_count
+
   finish: ->
     @old_table.replaceWith(@table)
-    $('#view-database-shown-songs').html(@row_count + ' shown songs')
-    $('#view-database-total-songs').html(@row_count + ' total songs')
     
 
 #####################
@@ -137,7 +138,7 @@ update_play_buttons = (status) ->
   $('#btn-pause>span').toggleClass('glyphicon-pause', not active)
 
 update_view_playing = (status) ->
-  if status.song != {}
+  if not $.isEmptyObject(status.song) or status['song-id'] < 0
     song = status.song
     $('#view-playing-artist').html(song.artist or '')
     $('#view-playing-album').html(song.album or '🎝')
@@ -164,47 +165,60 @@ update_view_playing = (status) ->
         "a:\"#{song.artist}\" b:\"#{song.album}\"", 'playing', false
       )
 
-      WEBSOCKET.send_query($('#view-queue-search').val(), 'queue', queue_only=true)
-
 update_view_playing_cover = (metadata) ->
   if metadata.urls
     $('#cover').attr('src', metadata.urls[0])
 
 update_view_playing_list = (playlist) ->
-  view = new PlaylistTable('#view-playing-list', '', (song_id) ->
-    WEBSOCKET.send_mpd("('play-id', #{song_id})")
+  view = new PlaylistTable(
+    '#view-playing-list', '',
+    (song_id) ->
+      WEBSOCKET.send_mpd("('play-id', #{song_id})")
   )
   for song, idx in playlist.songs
     row = view.add_row(["\##{idx + 1}", song.title], song.id)
     if song.id == LAST_SONG_ID
-      $(row).addClass('btn-info')
+      $(row).addClass('text-primary')
+    else if song.id < 0
+      $(row).addClass('text-muted')
 
   view.finish()
 
 
 update_view_database_list = (playlist) ->
-  view = new PlaylistTable('#view-database-list')
+  view = new PlaylistTable(
+    '#view-database-list',
+    'plus',
+    (song_uri) ->
+      WEBSOCKET.send_mpd("('queue-add', \"#{song_uri}\")")
+    (song_uri) ->
+      WEBSOCKET.send_mpd("('queue-add', \"#{song_uri}\")")
+  )
   view.add_header('#')
   view.add_header('Artist', 'left')
   view.add_header('Album', 'left')
   view.add_header('Title', 'right')
+  view.add_header('', 'right')
 
   for song, idx in playlist.songs
-    view.add_row(["\##{idx + 1}", song.artist, song.album, song.title])
+    queued = if song.id >= 0 then '✓' else ''
+    view.add_row(
+      ["\##{idx + 1}", song.artist, song.album, song.title, queued],
+      song.uri
+    )
 
+  $('#view-database-shown-songs').html(view.length() + ' shown songs')
   view.finish()
 
 
-queue_row_clicked = (song_id) ->
-  WEBSOCKET.send_mpd("('play-id', #{song_id})")
-
-queue_menu_clicked = (song_id) ->
-  console.log('Menu', song_id)
-
 update_view_queue_list = (playlist) ->
   view = new PlaylistTable(
-    '#view-queue-list', 'remove',
-    queue_row_clicked, queue_menu_clicked
+    '#view-queue-list',
+    'remove',
+    (song_id) ->
+      WEBSOCKET.send_mpd("('play-id', #{song_id})")
+    (song_id) ->
+      WEBSOCKET.send_mpd("('queue-delete-id', #{song_id})")
   )
 
   view.add_header('#')
@@ -218,9 +232,31 @@ update_view_queue_list = (playlist) ->
     ], song.id)
 
     if song.id == LAST_SONG_ID
-      $(row).addClass('selected-row')
+      $(row).addClass('text-primary')
 
+  $('#view-queue-shown-songs').html(view.length() + ' songs shown')
   view.finish()
+
+
+update_outputs_dialog = (outputs) ->
+  console.log(outputs)
+  if $.isEmptyObject(outputs)
+    return
+
+  output_list = $('#view-outputs-list')
+
+  # TODO
+  html = ""
+  for name, info in outputs
+    console.log('  ', name, info)
+    color = if info.on then 'success' else 'warning'
+    html += """<tr><td><label class="btn checkbutton btn-#{color} active">
+        <input type="checkbox" autocomplete="off" checked>
+        <span class="glyphicon glyphicon-ok">#{name}</span>
+      </label></td></tr>"""
+
+  console.log('html', html, outputs)
+  output_list.html(html)
 
 #####################
 #  WEBSOCKET STUFF  #
@@ -274,7 +310,25 @@ class SnobaerSocket
         update_progressbar(status)
         update_play_buttons(status)
         update_view_playing(status)
+        update_outputs_dialog(update_data.outputs)
+
+        $('#view-database-total-songs').html(status['number-of-songs'] + ' total songs')
+
         LAST_SONG_ID = status.song.id if status.song
+
+        if status['list-needs-update'] or status['song-changed']
+          WEBSOCKET.send_query($('#view-queue-search').val(), 'queue', queue_only=true)
+
+        if status['list-needs-update']
+          WEBSOCKET.send_query($('#view-database-search').val(), 'database', queue_only=false)
+
+        view = new PlaylistTable('#view-playing-stats', '')
+        view.add_row(['Number of songs', status['number-of-songs']])
+        view.add_row(['Number of artists', status['number-of-artists']])
+        view.add_row(['Number of albums', status['number-of-albums']])
+        view.add_row(['Kbit/s', status['kbit-rate']])
+        view.finish()
+
       when 'metadata'
         update_view_playing_cover(update_data)
       when 'store'
@@ -307,6 +361,10 @@ connect_search = (textbox, button, callback) ->
   )
 
 
+connect_autocomplete = (entry) ->
+    # TODO
+
+
 view_switch = (views, name) ->
   class_name = '#view-' + name
   for view in views
@@ -324,7 +382,7 @@ view_switch = (views, name) ->
 
 
 $ ->
-  views = ['database', 'playing', 'queue']
+  views = ['database', 'playing', 'queue', 'playlists']
 
   # Hide the database and queue by default.
   view_switch(views, 'database')
@@ -335,15 +393,19 @@ $ ->
       $('#switch-' + view + '-view').click -> view_switch(views, view)
 
 
-  for view in ['database', 'queue']
-    do (view) ->
+  for view_spec in [['database', false], ['queue', true]]
+    do (view_spec) ->
+      [view, queue_only] = view_spec
       connect_search(
         $('#view-'+view+'-search'),
         $('#view-'+view+'-exec'), (qry) ->
-          WEBSOCKET.send_query(qry, view, queue_only=false)
+          WEBSOCKET.send_query(qry, view, queue_only=queue_only)
       )
+      console.log($('#view-'+view+'-search'))
+      connect_autocomplete($('#view-'+view+'-search'))
 
-  for entry in ['about', 'sysinfo']
+
+  for entry in ['about', 'sysinfo', 'outputs']
     do (entry) ->
       # Connect the menu entries:
       $('#menu-' + entry).click ->
@@ -352,6 +414,30 @@ $ ->
           'keyboard': true,
           'show': true
         })
+
+  $('#view-database-rescan').click ->
+    WEBSOCKET.send_mpd_simple('database-rescan')
+
+  $('#view-database-add-all').click ->
+    WEBSOCKET.send_mpd("('queue-add', '/')")
+
+  # TODO show_modal function
+  $('#view-queue-clear').click ->
+    $('#modal-queue-clear').modal({
+      'backdrop': 'static',
+      'keyboard': true,
+      'show': true
+    })
+
+  $('#view-queue-save').click ->
+    $('#modal-queue-save').modal({
+      'backdrop': 'static',
+      'keyboard': true,
+      'show': true
+    })
+
+  $('#view-queue-apply-clear').click ->
+    WEBSOCKET.send_mpd_simple('queue-clear')
   
   for action in ['previous', 'stop', 'pause', 'next']
     do (action) ->

@@ -69,8 +69,8 @@ def serialize_song(song):
     if song is None:
         return {}
 
-    # Only serialize the most needed data for now.
-    keys = ['artist', 'album', 'title', 'genre', 'id']
+    # Only serialize the most needed data for now:
+    keys = ['artist', 'album', 'title', 'genre', 'id', 'uri', 'date']
     return {key: getattr(song.props, key) for key in keys}
 
 
@@ -89,11 +89,18 @@ def serialize_status(status, event=None, detail='timer'):
         }
     }
 
-    status_data['status']['events'] = Moose.Idle(event).value_nicks if event else []
+    list_needs_update = event & (Moose.Idle.DATABASE | Moose.Idle.QUEUE)
 
-    print(status.get_current_song())
+    status_data['status']['events'] = Moose.Idle(event).value_nicks if event else []
+    status_data['status']['list-needs-update'] = list_needs_update
     status_data['status']['state'] = serialize_state(status.props.state)
     status_data['status']['song'] = serialize_song(status.get_current_song())
+
+
+    status_data['outputs'] = {}
+    for name, (_, id_, enabled) in status.outputs_get().items():
+        status_data['outputs'][name] = {'id': id_, 'on': enabled}
+
     return status_data
 
 
@@ -125,9 +132,6 @@ def _parse_store_command(client, document, callback):
         playlist = client.store.query_sync(query, queue_only=False)
     elif detail == 'stored':
         playlist_name = document['playlist_name']
-        # TODO
-    elif detail == 'directories':
-        pass
         # TODO
 
     song_list = []
