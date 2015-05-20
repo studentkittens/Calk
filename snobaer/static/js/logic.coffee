@@ -281,12 +281,13 @@ class SnobaerSocket
   send_mpd_simple: (command) ->
     this.send_mpd "('#{command}', )"
   
-  send_query: (query, target, queue_only=true) ->
+  send_query: (query, target, queue_only=true, add_matches=false) ->
     @socket.send(JSON.stringify({
       'type': 'store',
       'detail': if queue_only then 'queue' else 'database',
       'target': target,
-      'query': query
+      'query': query,
+      'add-matches': add_matches
     }))
 
   on_socket_open: (msg) =>
@@ -312,15 +313,25 @@ class SnobaerSocket
         update_view_playing(status)
         update_outputs_dialog(update_data.outputs)
 
-        $('#view-database-total-songs').html(status['number-of-songs'] + ' total songs')
+        $('#view-database-total-songs').html(
+          status['number-of-songs'] + ' total songs'
+        )
+
+        console.log(status['list-needs-update'])
 
         LAST_SONG_ID = status.song.id if status.song
 
         if status['list-needs-update'] or status['song-changed']
-          WEBSOCKET.send_query($('#view-queue-search').val(), 'queue', queue_only=true)
+          WEBSOCKET.send_query(
+            $('#view-queue-search').val(),
+            'queue', queue_only=true
+          )
 
         if status['list-needs-update']
-          WEBSOCKET.send_query($('#view-database-search').val(), 'database', queue_only=false)
+          WEBSOCKET.send_query(
+            $('#view-database-search').val(),
+            'database', queue_only=false
+          )
 
         view = new PlaylistTable('#view-playing-stats', '')
         view.add_row(['Number of songs', status['number-of-songs']])
@@ -338,6 +349,7 @@ class SnobaerSocket
           when 'queue'
             update_view_queue_list(update_data)
           when 'database'
+            console.log('updating database')
             update_view_database_list(update_data)
       else
         console.log('Unknown message type: ', update_data.type)
@@ -348,7 +360,7 @@ class SnobaerSocket
 
 connect_search = (textbox, button, callback) ->
   textbox.keypress (ev) ->
-    console.log(ev)
+    console.log('CONENCT', textbox)
     if ev.keyCode == 13
       callback(textbox.val())
 
@@ -381,6 +393,14 @@ view_switch = (views, name) ->
       button.parent().removeClass('active')
 
 
+show_modal = (name) ->
+  $('#modal-' + name).modal({
+    'backdrop': 'static',
+    'keyboard': true,
+    'show': true
+  })
+
+
 $ ->
   views = ['database', 'playing', 'queue', 'playlists']
 
@@ -393,48 +413,41 @@ $ ->
       $('#switch-' + view + '-view').click -> view_switch(views, view)
 
 
-  for view_spec in [['database', false], ['queue', true]]
-    do (view_spec) ->
-      [view, queue_only] = view_spec
+  for [view, queue_only] in [['database', false], ['queue', true]]
+    do (view, queue_only) ->
       connect_search(
         $('#view-'+view+'-search'),
-        $('#view-'+view+'-exec'), (qry) ->
+        $('#view-'+view+'-exec'),
+        (qry) ->
           WEBSOCKET.send_query(qry, view, queue_only=queue_only)
       )
-      console.log($('#view-'+view+'-search'))
-      connect_autocomplete($('#view-'+view+'-search'))
+
+    connect_autocomplete($('#view-'+view+'-search'))
 
 
   for entry in ['about', 'sysinfo', 'outputs']
     do (entry) ->
       # Connect the menu entries:
       $('#menu-' + entry).click ->
-        $('#modal-' + entry).modal({
-          'backdrop': 'static',
-          'keyboard': true,
-          'show': true
-        })
+        show_modal(entry)
 
   $('#view-database-rescan').click ->
-    WEBSOCKET.send_mpd_simple('database-rescan')
+    WEBSOCKET.send_mpd('("database-rescan", "/")')
 
   $('#view-database-add-all').click ->
     WEBSOCKET.send_mpd("('queue-add', '/')")
 
+  $('#view-database-add-visible').click ->
+    query = $('#view-database-search').val()
+    console.log(query)
+    WEBSOCKET.send_query(query, 'database', false, true)
+
   # TODO show_modal function
   $('#view-queue-clear').click ->
-    $('#modal-queue-clear').modal({
-      'backdrop': 'static',
-      'keyboard': true,
-      'show': true
-    })
+    show_modal('queue-clear')
 
   $('#view-queue-save').click ->
-    $('#modal-queue-save').modal({
-      'backdrop': 'static',
-      'keyboard': true,
-      'show': true
-    })
+    show_modal('queue-save')
 
   $('#view-queue-apply-clear').click ->
     WEBSOCKET.send_mpd_simple('queue-clear')
@@ -453,4 +466,3 @@ $ ->
 
   # Connect the event socket:
   WEBSOCKET = new SnobaerSocket SERVER_URL
-

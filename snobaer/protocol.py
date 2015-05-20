@@ -96,10 +96,10 @@ def serialize_status(status, event=None, detail='timer'):
     status_data['status']['state'] = serialize_state(status.props.state)
     status_data['status']['song'] = serialize_song(status.get_current_song())
 
-
-    status_data['outputs'] = {}
-    for name, (_, id_, enabled) in status.outputs_get().items():
-        status_data['outputs'][name] = {'id': id_, 'on': enabled}
+    # TODO:
+    # status_data['outputs'] = {}
+    # for name, (_, id_, enabled) in status.outputs_get().items():
+    #     status_data['outputs'][name] = {'id': id_, 'on': enabled}
 
     return status_data
 
@@ -125,6 +125,7 @@ def _parse_store_command(client, document, callback):
     #       so make this return a future.
     detail = document['detail']
     query = document['query']
+    is_add_query = document['add-matches']
 
     if detail == 'queue':
         playlist = client.store.query_sync(query, queue_only=True)
@@ -134,15 +135,23 @@ def _parse_store_command(client, document, callback):
         playlist_name = document['playlist_name']
         # TODO
 
-    song_list = []
-    response = copy_header(document)
-    response['target'] = document.get('target')
-    response['songs'] = song_list
+    if not is_add_query:
+        song_list = []
+        response = copy_header(document)
+        response['target'] = document.get('target')
+        response['songs'] = song_list
 
-    for song in playlist:
-        song_list.append(serialize_song(song))
+        for song in playlist:
+            song_list.append(serialize_song(song))
 
-    callback(response)
+        callback(response)
+    else:
+        with client.command_list():
+            for song in playlist:
+                client.send("('queue-add', '{uri}')".format(uri=song.props.uri))
+
+        # No need to return songs to client;
+        # will receive an update soon anyways.
 
 
 def _parse_metadata_command(client, document, callback):
