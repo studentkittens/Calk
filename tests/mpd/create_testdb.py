@@ -26,7 +26,8 @@ def album_to_jstruct(artist, tracks, album, genre):
             "artist": artist,
             "composer": artist,
             "title": trackname,
-            "track": position
+            "track": position,
+            "genre": genre
         }
         jstruct.append(entry)
     return jstruct
