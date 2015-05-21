@@ -302,8 +302,6 @@ class SnobaerSocket
     }))
 
   on_socket_open: (msg) =>
-    console.log(msg)
-
     # Make an initial update on the queue and database.
     this.send_query('*', 'queue', queue_only=true)
     this.send_query('*', 'database', queue_only=false)
@@ -423,7 +421,7 @@ $ ->
   views = ['database', 'playing', 'queue', 'playlists']
 
   # Hide the database and queue by default.
-  view_switch(views, 'database')
+  view_switch(views, 'playing')
 
   # Make views switchable:
   for view in views
@@ -461,7 +459,6 @@ $ ->
     query = $('#view-database-search').val()
     WEBSOCKET.send_query(query, 'database', false, true)
 
-  # TODO show_modal function
   $('#view-queue-clear').click ->
     show_modal('queue-clear')
 
@@ -469,6 +466,7 @@ $ ->
     show_modal('queue-save')
 
   $('#view-queue-apply-clear').click ->
+    console.log('CLICKED!')
     WEBSOCKET.send_mpd_simple('queue-clear')
   
   for action in ['previous', 'stop', 'pause', 'next']

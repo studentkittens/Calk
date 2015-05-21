@@ -12,7 +12,6 @@ from snobaer.web import flask_app
 from snobaer.config import Config
 from snobaer.logger import InternalLogCatcher, create_logger
 from snobaer.protocol import serialize_status, parse_message
-from snobaer.metadata import configure_query
 from snobaer.mainloop import GLibIOLoop
 from snobaer.heartbeat import Heartbeat
 from snobaer.commandline import parse_arguments
@@ -45,25 +44,23 @@ class EchoWebSocket(WebSocketHandler):
         try:
             self.write_message(json_doc)
         except Exception as err:
-            LOGGER.error("Unable to write back message:" + str(json_doc) + str(err))
+            LOGGER.error(
+                "Unable to write back message:" + str(json_doc) + str(err)
+            )
 
     def on_message(self, message):
-        print('Received', message)
         parse_message(self.client, message, self.on_message_processed)
 
     def on_client_event(self, client, event):
         with client.reffed_status() as status:
             if status is None:
                 return
-            print('INREF', status.get_current_song())
 
             serialized_data = serialize_status(status, event)
-            print(serialized_data)
 
             current_song = status.get_current_song()
             if current_song is not None:
                 if self.last_song_id is None or self.last_song_id != current_song.props.id:
-                    print('song changed!')
                     serialized_data['status']['song-changed'] = True
                     if current_song:
                         self.last_song_id = current_song.props.id
@@ -80,7 +77,6 @@ class EchoWebSocket(WebSocketHandler):
 
 def log_client_event(client, events):
     LOGGER.debug('client event: {}'.format(Moose.Idle(events)))
-    print('I survived the client event')
 
 
 def log_connection_event(client, server_changed):

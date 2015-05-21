@@ -118,6 +118,7 @@ def serialize_playlist(playlist, detail='queue'):
 
 
 def _parse_mpd_command(client, document, callback):
+    LOGGER.info("Sending mpd command: " + str(document['detail']))
     client.send(document['detail'])
 
 

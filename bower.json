@@ -24,7 +24,6 @@
     "bootstrap-switch": "~3.3.2",
     "jquery-ui": "~1.11.4",
     "bootstrap": "~3.3.4",
-    "bootswatch-dist": "~3.3.1+2-readable",
     "jquery": "~2.1.4",
     "typeahead.js-bootstrap-css": "~1.0.1",
     "typeahead.js": "~0.11.1"
