@@ -243,7 +243,6 @@ update_view_queue_list = (playlist) ->
 
 
 update_outputs_dialog = (outputs) ->
-  console.log(outputs)
   if $.isEmptyObject(outputs)
     return
 
@@ -259,7 +258,6 @@ update_outputs_dialog = (outputs) ->
         <span class="glyphicon glyphicon-ok">#{name}</span>
       </label></td></tr>"""
 
-  console.log('html', html, outputs)
   output_list.html(html)
 
 #####################
@@ -304,7 +302,7 @@ class SnobaerSocket
     }))
 
   on_socket_open: (msg) =>
-    console.log(msg, this)
+    console.log(msg)
 
     # Make an initial update on the queue and database.
     this.send_query('*', 'queue', queue_only=true)
@@ -352,7 +350,6 @@ class SnobaerSocket
       when 'metadata'
         update_view_playing_cover(update_data)
       when 'completion'
-        console.log(update_data.result, COMPLETION_HANDLER)
         if COMPLETION_HANDLER != null
           COMPLETION_HANDLER(update_data.result)
         COMPLETION_HANDLER = null
@@ -375,13 +372,10 @@ class SnobaerSocket
     }, {
       name: 'songs',
       async: true,
-      source: (frag, _, async) =>
+      source: (frag, _, async) ->
         WEBSOCKET.send_completion_request(frag)
         COMPLETION_HANDLER = (result) ->
           async([result])
-
-        console.log('REQ', frag, async, this, COMPLETION_HANDLER)
-        
     })
 
 #######################################################
