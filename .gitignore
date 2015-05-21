@@ -59,3 +59,7 @@ target/
 # Vim rope
 .ropeproject
 *.js
+
+# web stuff
+bower_components
+moosecat_*.sqlite

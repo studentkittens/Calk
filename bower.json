@@ -1,0 +1,32 @@
+{
+  "name": "snobaer",
+  "version": "0.0.1",
+  "homepage": "https://github.com/studentkittens/snobaer",
+  "authors": [
+    "Chris P. <sahib@online.de>"
+  ],
+  "description": "A web mpd client",
+  "main": "snobaer/static/js/logic.js",
+  "license": "GPLv3",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "keywords": [
+    "mpd",
+    "web",
+    "bootstrap"
+  ],
+  "dependencies": {
+    "bootstrap-switch": "~3.3.2",
+    "jquery-ui": "~1.11.4",
+    "bootstrap": "~3.3.4",
+    "bootswatch-dist": "~3.3.1+2-readable",
+    "jquery": "~2.1.4",
+    "typeahead.js-bootstrap-css": "~1.0.1",
+    "typeahead.js": "~0.11.1"
+  }
+}

@@ -7,6 +7,11 @@ SERVER_URL = "ws://localhost:8080/ws"
 WEBSOCKET = null
 LAST_SONG_ID = -1
 
+# Stupid hack to save the completion callback
+# for the time when the result was retrieved
+# from the server.
+COMPLETION_HANDLER = null
+
 class PlaylistTable
   constructor: (
     table_id, @glyphicon='plus',
@@ -96,7 +101,6 @@ update_progressbar = (status) ->
   pg = $('#seekbar')
 
   if pg.attr('update-id')
-    console.log('clear previous timer')
     clearTimeout(parseInt(pg.attr('update-id')))
 
   percent = 0
@@ -269,6 +273,9 @@ class SnobaerSocket
     @socket.onclose = this.on_socket_close
     @socket.onmessage = this.on_socket_message
 
+    # Needed for autocompletion:
+    @completion_handler = null
+
   send: (msg) ->
     @socket.send(msg)
 
@@ -280,6 +287,12 @@ class SnobaerSocket
   
   send_mpd_simple: (command) ->
     this.send_mpd "('#{command}', )"
+
+  send_completion_request: (query) ->
+    @socket.send(JSON.stringify({
+      'type': 'completion',
+      'detail': query
+    }))
   
   send_query: (query, target, queue_only=true, add_matches=false) ->
     @socket.send(JSON.stringify({
@@ -301,7 +314,6 @@ class SnobaerSocket
     console.log(status)
   
   on_socket_message: (msg) ->
-    # console.log('receive', msg)
     update_data = JSON.parse msg.data
 
     switch update_data.type
@@ -316,8 +328,6 @@ class SnobaerSocket
         $('#view-database-total-songs').html(
           status['number-of-songs'] + ' total songs'
         )
-
-        console.log(status['list-needs-update'])
 
         LAST_SONG_ID = status.song.id if status.song
 
@@ -339,9 +349,13 @@ class SnobaerSocket
         view.add_row(['Number of albums', status['number-of-albums']])
         view.add_row(['Kbit/s', status['kbit-rate']])
         view.finish()
-
       when 'metadata'
         update_view_playing_cover(update_data)
+      when 'completion'
+        console.log(update_data.result, COMPLETION_HANDLER)
+        if COMPLETION_HANDLER != null
+          COMPLETION_HANDLER(update_data.result)
+        COMPLETION_HANDLER = null
       when 'store'
         switch update_data.target
           when 'playing'
@@ -349,10 +363,27 @@ class SnobaerSocket
           when 'queue'
             update_view_queue_list(update_data)
           when 'database'
-            console.log('updating database')
             update_view_database_list(update_data)
       else
         console.log('Unknown message type: ', update_data.type)
+
+  connect_autocomplete: (entry) ->
+    entry.typeahead({
+      hint: true,
+      highlight: true,
+      minLength: 1
+    }, {
+      name: 'songs',
+      async: true,
+      source: (frag, _, async) =>
+        WEBSOCKET.send_completion_request(frag)
+        COMPLETION_HANDLER = (result) ->
+          async([result])
+
+        console.log('REQ', frag, async, this, COMPLETION_HANDLER)
+        
+    })
+    entry.removeClass('dropdown-menu');
 
 #######################################################
 #  MAIN (or how main-y you can go with CoffeeScript)  #
@@ -360,7 +391,6 @@ class SnobaerSocket
 
 connect_search = (textbox, button, callback) ->
   textbox.keypress (ev) ->
-    console.log('CONENCT', textbox)
     if ev.keyCode == 13
       callback(textbox.val())
 
@@ -371,11 +401,6 @@ connect_search = (textbox, button, callback) ->
     unless textbox.val()
       callback('*')
   )
-
-
-connect_autocomplete = (entry) ->
-    # TODO
-
 
 view_switch = (views, name) ->
   class_name = '#view-' + name
@@ -412,6 +437,8 @@ $ ->
     do (view) ->
       $('#switch-' + view + '-view').click -> view_switch(views, view)
 
+  # Connect the event socket:
+  WEBSOCKET = new SnobaerSocket SERVER_URL
 
   for [view, queue_only] in [['database', false], ['queue', true]]
     do (view, queue_only) ->
@@ -422,7 +449,7 @@ $ ->
           WEBSOCKET.send_query(qry, view, queue_only=queue_only)
       )
 
-    connect_autocomplete($('#view-'+view+'-search'))
+    WEBSOCKET.connect_autocomplete($('#view-'+view+'-search'))
 
 
   for entry in ['about', 'sysinfo', 'outputs']
@@ -439,7 +466,6 @@ $ ->
 
   $('#view-database-add-visible').click ->
     query = $('#view-database-search').val()
-    console.log(query)
     WEBSOCKET.send_query(query, 'database', false, true)
 
   # TODO show_modal function
@@ -464,5 +490,7 @@ $ ->
         is_active = $(this).hasClass('btn-info')
         WEBSOCKET.send_mpd("('#{action}', #{not is_active})")
 
-  # Connect the event socket:
-  WEBSOCKET = new SnobaerSocket SERVER_URL
+  $('.toggle-switch').bootstrapSwitch({
+    size: 'small',
+    onColor: 'success'
+  })

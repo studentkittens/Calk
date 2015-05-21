@@ -42,6 +42,7 @@ Server -> Client types:
 """
 
 # Stdlib:
+import re
 import json
 import logging
 
@@ -120,6 +121,35 @@ def _parse_mpd_command(client, document, callback):
     client.send(document['detail'])
 
 
+def _parse_autocomplete_command(client, document, callback):
+    full_query = document['detail']
+    match = re.search('.*\s(.*?):(.*?)$', full_query)
+    if match is not None:
+        tag = match.group(1)
+        tag = Moose.Store.qp_tag_abbrev_to_full(tag + ':', len(tag))
+        tags, query = [tag.strip(':')], match.group(2).strip()
+        #TODO
+    else:
+        # Use default tags and last component of string:
+        tags, query = [
+            Moose.TagType.ARTIST, Moose.TagType.ALBUM, Moose.TagType.ALBUM_ARTIST,
+            Moose.TagType.TITLE, Moose.TagType.GENRE
+        ], full_query.split()[-1]
+
+    completion = client.store.get_completion()
+    for tag in tags:
+        guess = completion.lookup(tag, query)
+        if guess:
+            break
+
+    print(tag, query, '->', guess)
+
+    if guess is not None:
+        response = copy_header(document)
+        response['result'] = guess
+        callback(response)
+
+
 def _parse_store_command(client, document, callback):
     # TODO: Moosecat supports asynchronous queries,
     #       so make this return a future.
@@ -151,7 +181,7 @@ def _parse_store_command(client, document, callback):
                 client.send("('queue-add', '{uri}')".format(uri=song.props.uri))
 
         # No need to return songs to client;
-        # will receive an update soon anyways.
+        # it will receive an update soon anyways.
 
 
 def _parse_metadata_command(client, document, callback):
@@ -182,7 +212,8 @@ def _parse_metadata_command(client, document, callback):
 HANDLERS = {
     'metadata': _parse_metadata_command,
     'mpd': _parse_mpd_command,
-    'store': _parse_store_command
+    'store': _parse_store_command,
+    'completion': _parse_autocomplete_command
 }
 
 
