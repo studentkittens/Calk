@@ -383,7 +383,6 @@ class SnobaerSocket
         console.log('REQ', frag, async, this, COMPLETION_HANDLER)
         
     })
-    entry.removeClass('dropdown-menu');
 
 #######################################################
 #  MAIN (or how main-y you can go with CoffeeScript)  #
