@@ -122,33 +122,55 @@ def _parse_mpd_command(client, document, callback):
     client.send(document['detail'])
 
 
+# TODO: This is ugly, find GObject solution:
+def _tag_string_to_enum(tag_string):
+    for key, value in Moose.TagType.__dict__.items():
+        if key.isupper() and key.lower() == tag_string:
+            return getattr(Moose.TagType, key)
+    return None
+
+
 def _parse_autocomplete_command(client, document, callback):
     full_query = document['detail']
-    match = re.search('.*\s(.*?):(.*?)$', full_query)
+    match = re.search('(.*?):(.*?)$', full_query)
+    print(match)
+
     if match is not None:
+        query = match.group(2)
+        full_query = full_query[:-len(query)]
+        print('F', full_query, 'Q', query)
+        if not query:
+            return
+        query.strip()
         tag = match.group(1)
-        tag = Moose.Store.qp_tag_abbrev_to_full(tag + ':', len(tag))
-        tags, query = [tag.strip(':')], match.group(2).strip()
+        print('M', tag)
+        tag = Moose.Store.qp_tag_abbrev_to_full(tag + ':', len(tag)) or tag
+        print('A', tag)
+        tag = tag.strip(':')
+        print('C', tag)
+        tags = [_tag_string_to_enum(tag)]
+        print(tag, tags, query)
         #TODO
     else:
         # Use default tags and last component of string:
-        tags, query = [
+        query = full_query.split()[-1]
+        full_query = full_query[:-len(query)]
+        tags = [
             Moose.TagType.ARTIST, Moose.TagType.ALBUM, Moose.TagType.ALBUM_ARTIST,
             Moose.TagType.TITLE, Moose.TagType.GENRE
-        ], full_query.split()[-1]
+        ]
 
+    print('Q', full_query, query, tags)
     completion = client.store.get_completion()
     for tag in tags:
+        if tag is None:
+            continue
         guess = completion.lookup(tag, query)
         if guess:
-            break
-
-    print(tag, query, '->', guess)
-
-    if guess is not None:
-        response = copy_header(document)
-        response['result'] = guess
-        callback(response)
+            print(tag, query, '->', guess)
+            response = copy_header(document)
+            response['result'] = full_query + guess
+            callback(response)
 
 
 def _parse_store_command(client, document, callback):
