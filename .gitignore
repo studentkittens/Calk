@@ -63,4 +63,6 @@ target/
 bower_components
 moosecat_*.sqlite
 logic.js
+
+# pdfs
 documentation.pdf
