@@ -38,8 +38,8 @@ def get_sysinfo():
     stats["mem_used_perc"] = 100 - (100 / mem.total *  mem.free)
 
     swap = psutil.swap_memory()
-    stats["swap_total"] = swap.total
-    stats["swap_free"] = 100 / swap.total * swap.free
+    stats["swap_total"] = to_human_readable(swap.total)
+    stats["swap_free"] = to_human_readable(swap.free)
     stats["swap_used_perc"] = 100 - (100 / swap.total * swap.free)
 
     partitions = psutil.disk_partitions()
@@ -73,7 +73,7 @@ def index():
 
 @flask_app.route('/sysinfo')
 def sysinfo():
-    return render_template('sysinfo.html', **get_sysstats())
+    return render_template('sysinfo.html', **get_sysinfo())
 
 
 @flask_app.route('/css/<path:name>')

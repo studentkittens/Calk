@@ -42,6 +42,7 @@ Server -> Client types:
 """
 
 # Stdlib:
+import re
 import json
 import logging
 
@@ -69,8 +70,8 @@ def serialize_song(song):
     if song is None:
         return {}
 
-    # Only serialize the most needed data for now.
-    keys = ['artist', 'album', 'title', 'id']
+    # Only serialize the most needed data for now:
+    keys = ['artist', 'album', 'title', 'genre', 'id', 'uri', 'date']
     return {key: getattr(song.props, key) for key in keys}
 
 
@@ -89,11 +90,18 @@ def serialize_status(status, event=None, detail='timer'):
         }
     }
 
-    status_data['status']['events'] = Moose.Idle(event).value_nicks if event else []
+    list_needs_update = event & (Moose.Idle.DATABASE | Moose.Idle.QUEUE)
 
-    print(status.get_current_song())
+    status_data['status']['events'] = Moose.Idle(event).value_nicks if event else []
+    status_data['status']['list-needs-update'] = list_needs_update
     status_data['status']['state'] = serialize_state(status.props.state)
     status_data['status']['song'] = serialize_song(status.get_current_song())
+
+    # TODO:
+    # status_data['outputs'] = {}
+    # for name, (_, id_, enabled) in status.outputs_get().items():
+    #     status_data['outputs'][name] = {'id': id_, 'on': enabled}
+
     return status_data
 
 
@@ -110,7 +118,37 @@ def serialize_playlist(playlist, detail='queue'):
 
 
 def _parse_mpd_command(client, document, callback):
+    LOGGER.info("Sending mpd command: " + str(document['detail']))
     client.send(document['detail'])
+
+
+def _parse_autocomplete_command(client, document, callback):
+    full_query = document['detail']
+    match = re.search('.*\s(.*?):(.*?)$', full_query)
+    if match is not None:
+        tag = match.group(1)
+        tag = Moose.Store.qp_tag_abbrev_to_full(tag + ':', len(tag))
+        tags, query = [tag.strip(':')], match.group(2).strip()
+        #TODO
+    else:
+        # Use default tags and last component of string:
+        tags, query = [
+            Moose.TagType.ARTIST, Moose.TagType.ALBUM, Moose.TagType.ALBUM_ARTIST,
+            Moose.TagType.TITLE, Moose.TagType.GENRE
+        ], full_query.split()[-1]
+
+    completion = client.store.get_completion()
+    for tag in tags:
+        guess = completion.lookup(tag, query)
+        if guess:
+            break
+
+    print(tag, query, '->', guess)
+
+    if guess is not None:
+        response = copy_header(document)
+        response['result'] = guess
+        callback(response)
 
 
 def _parse_store_command(client, document, callback):
@@ -118,6 +156,7 @@ def _parse_store_command(client, document, callback):
     #       so make this return a future.
     detail = document['detail']
     query = document['query']
+    is_add_query = document['add-matches']
 
     if detail == 'queue':
         playlist = client.store.query_sync(query, queue_only=True)
@@ -126,19 +165,24 @@ def _parse_store_command(client, document, callback):
     elif detail == 'stored':
         playlist_name = document['playlist_name']
         # TODO
-    elif detail == 'directories':
-        pass
-        # TODO
 
-    song_list = []
-    response = copy_header(document)
-    response['target'] = document.get('target')
-    response['songs'] = song_list
+    if not is_add_query:
+        song_list = []
+        response = copy_header(document)
+        response['target'] = document.get('target')
+        response['songs'] = song_list
 
-    for song in playlist:
-        song_list.append(serialize_song(song))
+        for song in playlist:
+            song_list.append(serialize_song(song))
 
-    callback(response)
+        callback(response)
+    else:
+        with client.command_list():
+            for song in playlist:
+                client.send("('queue-add', '{uri}')".format(uri=song.props.uri))
+
+        # No need to return songs to client;
+        # it will receive an update soon anyways.
 
 
 def _parse_metadata_command(client, document, callback):
@@ -169,7 +213,8 @@ def _parse_metadata_command(client, document, callback):
 HANDLERS = {
     'metadata': _parse_metadata_command,
     'mpd': _parse_mpd_command,
-    'store': _parse_store_command
+    'store': _parse_store_command,
+    'completion': _parse_autocomplete_command
 }
 
 
