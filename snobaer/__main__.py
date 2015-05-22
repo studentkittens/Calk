@@ -56,7 +56,7 @@ class EchoWebSocket(WebSocketHandler):
             if status is None:
                 return
 
-            serialized_data = serialize_status(status, event)
+            serialized_data = serialize_status(client, status, event)
 
             current_song = status.get_current_song()
             if current_song is not None:

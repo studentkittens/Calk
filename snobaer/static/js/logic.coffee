@@ -12,19 +12,27 @@ LAST_SONG_ID = -1
 # from the server.
 COMPLETION_HANDLER = null
 
+
+show_modal = (name) ->
+  $('#modal-' + name).modal({
+    'backdrop': 'static',
+    'keyboard': true,
+    'show': true
+  })
+
 class PlaylistTable
   constructor: (
     table_id, @glyphicon='plus',
-    @fn_row=null, @fn_menu=null) ->
+    @fn_row=null, @fn_menu=null, header=true) ->
     @old_table = $(table_id)
-    @old_table.html('')
+    @old_table.empty()
     @table = @old_table.clone(false)
     @header_row = document.createElement('tr')
     @table.append(@header_row)
     @aligns = []
     @row_count = 0
 
-    if @glyphicon
+    if @glyphicon and header
       this.add_header('')
 
   add_header: (name, align='left') ->
@@ -74,10 +82,12 @@ class PlaylistTable
 #  STATUS UPDATING  #
 #####################
 
+# TODO: Use server's more exact heartbeat.
 format_minutes = (seconds) ->
   secs = Math.round(seconds % 60)
   secs = '0' + secs if secs < 10
   return Math.round(seconds / 60) + ':' + secs
+
 
 update_play_modes = (status) ->
   states ={
@@ -149,13 +159,7 @@ update_view_playing = (status) ->
     $('#view-playing-title').html(song.title or 'Not playing')
 
     if status['song-changed']
-      WEBSOCKET.send(JSON.stringify({
-        'type': 'metadata',
-        'get_type': 'cover',
-        'detail': 'view-playing',
-        'artist': song.artist,
-        'album': song.album,
-      }))
+      WEBSOCKET.send_metadata_request('cover', song)
     
       # Set the default no cover:
       setTimeout(->
@@ -170,17 +174,20 @@ update_view_playing = (status) ->
       )
 
 update_view_playing_cover = (metadata) ->
-  if metadata.urls
-    $('#cover').attr('src', metadata.urls[0])
+  if metadata.results
+    $('#cover').attr('src', metadata.results[0])
 
 update_view_playing_list = (playlist) ->
   view = new PlaylistTable(
-    '#view-playing-list', '',
-    (song_id) ->
-      WEBSOCKET.send_mpd("('play-id', #{song_id})")
+    '#view-playing-list', 'align-left',
+    (song) ->
+      WEBSOCKET.send_mpd("('play-id', #{song.id})")
+    (song) ->
+      WEBSOCKET.send_metadata_request('lyrics', song)
+    header=false
   )
   for song, idx in playlist.songs
-    row = view.add_row(["\##{idx + 1}", song.title], song.id)
+    row = view.add_row(["\##{idx + 1}", song.title], song)
     if song.id == LAST_SONG_ID
       $(row).addClass('text-primary')
     else if song.id < 0
@@ -241,6 +248,35 @@ update_view_queue_list = (playlist) ->
   $('#view-queue-shown-songs').html(view.length() + ' songs shown')
   view.finish()
 
+update_view_playlists = (status) ->
+  list = $('#view-playlists-list')
+  list.empty()
+
+  for name in status.playlists
+    button = $('<button type="button" class="btn btn-primary btn-block"/>')
+    remove_button = $('<button type="button" class="btn btn-primary btn-sm"/>')
+
+    remove_button
+      .append($('<span class="glyphicon glyphicon-remove">'))
+
+    remove_button.click (event) ->
+      WEBSOCKET.send_mpd("('playlist-rm', '#{name}')")
+      event.stopPropagation()
+
+    button
+      .append(remove_button)
+    button
+      .append($("<span>&nbsp;&nbsp; Load playlist: <b>#{name}</b></span>"))
+
+    list.append(button)
+
+    button.click ->
+      WEBSOCKET.send_mpd_simple("queue-clear")
+      WEBSOCKET.send_mpd("('playlist-load', '#{name}')")
+
+  if status.playlists.length == 0
+    list.append($('<span class="text-muted">[No Playlists]</span>'))
+
 
 update_outputs_dialog = (outputs) ->
   if $.isEmptyObject(outputs)
@@ -292,6 +328,16 @@ class SnobaerSocket
       'detail': query
     }))
   
+
+  send_metadata_request: (type, song) ->
+    WEBSOCKET.send(JSON.stringify({
+      'type': 'metadata',
+      'detail': type,
+      'artist': song.artist,
+      'album': song.album,
+      'title': song.title
+    }))
+
   send_query: (query, target, queue_only=true, add_matches=false) ->
     @socket.send(JSON.stringify({
       'type': 'store',
@@ -319,6 +365,7 @@ class SnobaerSocket
         update_progressbar(status)
         update_play_buttons(status)
         update_view_playing(status)
+        update_view_playlists(status)
         update_outputs_dialog(update_data.outputs)
 
         $('#view-database-total-songs').html(
@@ -346,7 +393,13 @@ class SnobaerSocket
         view.add_row(['Kbit/s', status['kbit-rate']])
         view.finish()
       when 'metadata'
-        update_view_playing_cover(update_data)
+        console.log(update_data, update_data.detail)
+        switch update_data.detail
+          when 'cover'
+            update_view_playing_cover(update_data)
+          when 'lyrics'
+            $('#lyrics-box').html(update_data.results[0])
+            show_modal('show-lyrics')
       when 'completion'
         if COMPLETION_HANDLER != null
           COMPLETION_HANDLER(update_data.result)
@@ -408,15 +461,6 @@ view_switch = (views, name) ->
       button.fadeTo(500, 0.5)
       button.parent().removeClass('active')
 
-
-show_modal = (name) ->
-  $('#modal-' + name).modal({
-    'backdrop': 'static',
-    'keyboard': true,
-    'show': true
-  })
-
-
 $ ->
   views = ['database', 'playing', 'queue', 'playlists']
 
@@ -466,8 +510,11 @@ $ ->
     show_modal('queue-save')
 
   $('#view-queue-apply-clear').click ->
-    console.log('CLICKED!')
     WEBSOCKET.send_mpd_simple('queue-clear')
+
+  $('#view-queue-apply-save').click ->
+    playlist_name = $('#view-queue-save-input').val() or 'Last'
+    WEBSOCKET.send_mpd("('playlist-save', '#{playlist_name}')")
   
   for action in ['previous', 'stop', 'pause', 'next']
     do (action) ->

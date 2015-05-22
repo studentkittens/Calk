@@ -59,8 +59,8 @@
         <div class="row-fluid">
             <div class="col-xs-4 col-md-4 text-left">
                 <ol class="breadcrumb">
-                    <li id="view-database-shown-songs"></li>
-                    <li id="view-database-total-songs"></li>
+                    <li id="view-database-shown-songs" class="text-primary"></li>
+                    <li id="view-database-total-songs" class="text-primary"></li>
                 </ol>
             </div><!-- col -->
 
@@ -76,26 +76,15 @@
             </div><!-- col -->
 
             <div class="col-xs-4 col-md-4 text-right">
-            <!--
                     <div class="btn-group" role="group" aria-label="...">
-                        <button type="button" class="btn">
-                            <span class="glyphicon glyphicon-list" aria-hidden="true"></span>
-                        </button>
-                        <button type="button" class="btn btn">
-                            <span class="glyphicon glyphicon-indent-left" aria-hidden="true"></span>
-                        </button>
-                    </div>
-            -->
-
-                    <div class="btn-group" role="group" aria-label="...">
-                        <button type="button" id="view-database-add-all" class="btn">
+                        <button type="button" id="view-database-add-all" class="btn btn-primary">
                             <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                         </button>
-                        <button type="button" id="view-database-add-visible" class="btn">
+                        <button type="button" id="view-database-add-visible" class="btn btn-primary">
                             <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
                         </button>
                     </div>
-                    <button type="button" id="view-database-rescan" class="btn">
+                    <button type="button" id="view-database-rescan" class="btn btn-primary">
                         <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
                     </button>
             </div><!-- col -->
@@ -158,7 +147,7 @@
         <div class="row-fluid">
             <div class="col-xs-4 col-md-4 text-left">
                 <ol class="breadcrumb">
-                    <li id="view-queue-shown-songs"></li>
+                    <li id="view-queue-shown-songs" class="text-primary"></li>
                 </ol>
             </div><!-- col -->
 
@@ -173,10 +162,10 @@
             </div><!-- col -->
             <div class="col-xs-4 col-md-4 text-right">
                     <div class="btn-group" role="group" aria-label="...">
-                        <button type="button" class="btn" id="view-queue-save">
+                        <button type="button" class="btn btn-primary" id="view-queue-save">
                             <span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>
                         </button>
-                        <button type="button" class="btn" id="view-queue-clear">
+                        <button type="button" class="btn btn-primary" id="view-queue-clear">
                             <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
                         </button>
                     </div>
@@ -202,18 +191,7 @@
 <div id="view-playlists" class="fill inner-content" aria-expanded="true">
         <div class="row-fluid">
             <div class="row-fluid text-center">
-                <div class="col-xs-12 well">
-                        <button type="button" class="btn btn btn-primary btn-block">
-                            <span>Load playlist: <b>Dummy</b>&nbsp;&nbsp;<small>(13 entries)</small></span>
-                        </button>
-                        <button type="button" class="btn btn btn-primary btn-block">
-                            <span>Load playlist:
-                                <b>Test1</b>&nbsp;&nbsp;<small>(27 entries)</small></span>
-                        </button>
-                        <button type="button" class="btn btn btn-primary btn-block">
-                            <span>Load playlist:
-                                <b>Test2</b>&nbsp;&nbsp;<small>(27 entries)</small></span>
-                        </button>
+                <div class="col-xs-12 well" id="view-playlists-list">
                 </div>
             </div>
         </div> <!-- end row -->
@@ -232,18 +210,20 @@
             <div class="row-fluid">
                 <div class="col-xs-6 col-sm-3 text-left">
                     <div class="btn-group-md" role="group" aria-label="...">
-                        <button type="button" class="btn navbar-btn" id="btn-previous">
-                            <span class="glyphicon glyphicon-step-backward" aria-hidden="true"></span>
-                        </button>
-                        <button type="button" class="btn navbar-btn" id="btn-stop">
-                            <span class="glyphicon glyphicon-stop" aria-hidden="true"></span>
-                        </button>
-                        <button type="button" class="btn navbar-btn" id="btn-pause">
-                            <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
-                        </button>
-                        <button type="button" class="btn navbar-btn" id="btn-next">
-                            <span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span>
-                        </button>
+                        <div class="btn-group" role="group" aria-label="...">
+                            <button type="button" class="btn btn-primary  navbar-btn" id="btn-previous">
+                                <span class="glyphicon glyphicon-step-backward" aria-hidden="true"></span>
+                            </button>
+                            <button type="button" class="btn  btn-primary navbar-btn" id="btn-stop">
+                                <span class="glyphicon glyphicon-stop" aria-hidden="true"></span>
+                            </button>
+                            <button type="button" class="btn  btn-primary navbar-btn" id="btn-pause">
+                                <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
+                            </button>
+                            <button type="button" class="btn  btn-primary navbar-btn" id="btn-next">
+                                <span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -259,18 +239,20 @@
                 <!-- button group toggle -->
                 <div class="col-xs-6 col-sm-3 text-right">
                     <div class="btn-group-md" role="group" aria-label="...">
-                        <button id="btn-random" type="button" class="btn navbar-btn">
-                            <span class="glyphicon glyphicon-random" aria-hidden="true"></span>
-                        </button>
-                        <button id="btn-repeat" type="button" class="btn navbar-btn">
-                            <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
-                        </button>
-                        <button id="btn-consume" type="button" class="btn navbar-btn">
-                            <span class="glyphicon glyphicon-fire" aria-hidden="true"></span>
-                        </button>
-                        <button id="btn-single" type="button" class="btn navbar-btn">
-                            <span class="glyphicon glyphicon-tint" aria-hidden="true"></span>
-                        </button>
+                        <div class="btn-group" role="group" aria-label="...">
+                            <button id="btn-random" type="button" class="btn btn-primary  navbar-btn">
+                                <span class="glyphicon glyphicon-random" aria-hidden="true"></span>
+                            </button>
+                            <button id="btn-repeat" type="button" class="btn btn-primary navbar-btn">
+                                <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
+                            </button>
+                            <button id="btn-consume" type="button" class="btn btn-primary  navbar-btn">
+                                <span class="glyphicon glyphicon-fire" aria-hidden="true"></span>
+                            </button>
+                            <button id="btn-single" type="button" class="btn  btn-primary navbar-btn">
+                                <span class="glyphicon glyphicon-tint" aria-hidden="true"></span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -287,7 +269,8 @@
         <h4 class="modal-title">About</h4>
       </div>
       <div class="modal-body">
-            <img alt="About" width="550px" src="{{url_for('static', filename='about.png')}}">
+            <img alt="About" width="550px" src="{{url_for('static',
+            filename='about.png')}}">
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
@@ -305,7 +288,7 @@
         <h4 class="modal-title">System information</h4>
       </div>
       <div class="modal-body">
-          <iframe scrolling="no" width="550" height="800" frameBorder="0" src="/sysinfo"></iframe>
+          <iframe width="550" height="600" frameBorder="0" src="/sysinfo"></iframe>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
@@ -322,13 +305,14 @@
         <h4 class="modal-title">Really clear Queue?</h4>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn" data-dismiss="modal"
+        <button type="button" class="btn btn-primary" data-dismiss="modal"
             id="view-queue-apply-clear">Remove all songs</button>
-        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn" data-dismiss="modal">Close</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
+
 
 <div id="modal-queue-save" class="modal fade">
   <div class="modal-dialog modal-sm">
@@ -342,13 +326,32 @@
         autocomplete="off" data-provide="typeahead" placeholder="Playlist name...">
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn" data-dismiss="modal">Close</button>
+        <button type="button" class="btn" data-dismiss="modal">Close</button>
         <button type="button" class="btn btn-primary" data-dismiss="modal"
-            id="view-queue-apply-clear">Create new playlist</button>
+            id="view-queue-apply-save">Create new playlist</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
+
+
+<div id="modal-show-lyrics" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Lyrics:</h4>
+      </div>
+      <div class="modal-body">
+        <pre id="lyrics-box"></pre>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
 
 <div id="modal-outputs" class="modal fade">
   <div class="modal-dialog modal-sm">

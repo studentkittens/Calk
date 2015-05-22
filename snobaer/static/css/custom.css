@@ -30,24 +30,6 @@ body {
    outline: none !important;
 }
 
-.progress {
-    background: rgba(255, 255, 255, 1); 
-    background:
-      -webkit-linear-gradient(top, rgba(224, 224, 224, 1) 0%, rgba(255, 255, 255, 1) 100%); 
-    background:
-      linear-gradient(to bottom, rgba(224, 224, 224, 1) 0%, rgba(255, 255, 255, 1) 100%);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    border-radius: 4px; height: 25px;
-}
-
-.progress-bar-seek {
-    background: rgba(66, 139, 202, 1);
-    background:
-      -webkit-linear-gradient(top, rgba(28, 149, 255, 1) 0%, rgba(66, 139, 202, 1) 100%); 
-    background: 
-      linear-gradient(to bottom, rgba(28, 149, 255, 1) 0%, rgba(66, 139, 202, 1) 100%);}
-
-
 #cover {
     display: inline-block;
 }
@@ -102,7 +84,7 @@ body {
 
 .twitter-typeahead{
    width:100%;
-   margin-top: 2px;
+   margin-top: 4px;
 }
 
 .twitter-typeahead .tt-query,
@@ -112,4 +94,12 @@ body {
 
 .tt-suggestion {
   opacity: 0;
+}
+
+.progress-bar {
+  color: #000;
+}
+
+#remove-button:hover {
+  background: #CF4647;
 }

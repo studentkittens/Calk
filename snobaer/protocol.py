@@ -80,7 +80,7 @@ def serialize_state(state):
     return Moose.State(state).value_nick
 
 
-def serialize_status(status, event=None, detail='timer'):
+def serialize_status(client, status, event=None, detail='timer'):
     # Just serialize all the status data
     status_data = {
         'type': 'status',
@@ -96,8 +96,12 @@ def serialize_status(status, event=None, detail='timer'):
     status_data['status']['list-needs-update'] = list_needs_update
     status_data['status']['state'] = serialize_state(status.props.state)
     status_data['status']['song'] = serialize_song(status.get_current_song())
+    status_data['status']['playlists'] = []
 
-    # TODO:
+    for playlist in client.store.get_known_playlists():
+        status_data['status']['playlists'].append(playlist)
+
+    # TODO: This crashes for stupid reasons.
     # status_data['outputs'] = {}
     # for name, (_, id_, enabled) in status.outputs_get().items():
     #     status_data['outputs'][name] = {'id': id_, 'on': enabled}
@@ -209,7 +213,7 @@ def _parse_store_command(client, document, callback):
 
 def _parse_metadata_command(client, document, callback):
     query = Moose.MetadataQuery(
-        type=document.get('get_type'),
+        type=document.get('detail'),
         artist=document.get('artist'),
         album=document.get('album'),
         title=document.get('title'),
@@ -218,11 +222,11 @@ def _parse_metadata_command(client, document, callback):
 
     def _done(_, query):
         response = copy_header(document)
-        response['urls'] = []
+        response['results'] = []
 
         for cache in query.get_results():
             metadata = cache.props.data.get_data()
-            response['urls'].append(metadata.decode('utf-8'))
+            response['results'].append(metadata.decode('utf-8'))
 
         callback(response)
         client.metadata.disconnect_by_func(_done)
