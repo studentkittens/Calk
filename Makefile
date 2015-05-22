@@ -12,3 +12,6 @@ coffees:
 
 wind:
 	python3 snobaer/__init__.py
+
+doc:
+	pandoc docs/documentation.md -o documentation.pdf
