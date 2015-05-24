@@ -97,53 +97,26 @@ update_play_modes = (status) ->
   for name, state of states
     $('#btn-' + name).toggleClass('btn-info', state)
 
-setprogressbar_value = (pg, percent, elapsed_sec, total_sec) ->
-  pg.attr('aria-valuenow', percent)
-  pg.attr('timestamp', new Date().getTime())
-  pg.css('width', percent + '%')
-  $('#seekbar-label').html(
-    format_minutes(elapsed_sec) + '/' + format_minutes(total_sec)
-  )
-
-update_progressbar = (status) ->
-  elapsed_sec = status['elapsed-ms'] / 1000.0
-  total_sec = status['total-time']
+update_progressbar = (heartbeat) ->
   pg = $('#seekbar')
 
   if pg.attr('update-id')
     clearTimeout(parseInt(pg.attr('update-id')))
 
-  percent = 0
-  if total_sec == 0
-    percent = 100
+  if heartbeat.perc < 0.0001
     pg.addClass('progress-bar-striped')
   else
-    percent = (elapsed_sec / (total_sec * 1.0)) * 100
     pg.removeClass('progress-bar-striped')
 
-  setprogressbar_value(pg, percent, elapsed_sec, total_sec)
+  pg.attr('aria-valuenow', heartbeat.perc)
+  pg.css('width', heartbeat.perc + '%')
+  $('#seekbar-label').html(heartbeat.repr)
 
+update_progressbar_subtitle = (status) ->
   song = status.song
-
   $('#footer-song-title').html(
     '<em>' + (song.artist or '') + '</em> - ' + (song.title or '')
   )
-
-  if status.state == 'playing'
-    update_id = setInterval(->
-      last_time = parseInt(pg.attr('timestamp'), 10)
-      curr_time = new Date().getTime()
-      passed_sec = (curr_time - last_time) / 1000
-
-      last_percent = parseFloat(pg.attr('aria-valuenow'))
-
-      next_offset = ((last_percent / 100.0) * total_sec) + passed_sec
-      next_percent = (next_offset / total_sec) * 100
-
-      setprogressbar_value(pg, next_percent, next_offset, total_sec)
-    100)
-
-    pg.attr('update-id', update_id)
 
 update_play_buttons = (status) ->
   active = (status.state == 'playing')
@@ -328,7 +301,6 @@ class SnobaerSocket
       'detail': query
     }))
   
-
   send_metadata_request: (type, song) ->
     WEBSOCKET.send(JSON.stringify({
       'type': 'metadata',
@@ -353,20 +325,22 @@ class SnobaerSocket
     this.send_query('*', 'database', queue_only=false)
   
   on_socket_close: (msg) ->
-    console.log(status)
+    show_modal('connection-lost')
   
   on_socket_message: (msg) ->
-    update_data = JSON.parse msg.data
+    data = JSON.parse msg.data
 
-    switch update_data.type
+    switch data.type
+      when 'hb'  # Heartbeat.
+        update_progressbar(data)
       when 'status'  # Status update.
-        status = update_data.status
+        status = data.status
         update_play_modes(status)
-        update_progressbar(status)
+        update_progressbar_subtitle(status)
         update_play_buttons(status)
         update_view_playing(status)
         update_view_playlists(status)
-        update_outputs_dialog(update_data.outputs)
+        update_outputs_dialog(data.outputs)
 
         $('#view-database-total-songs').html(
           status['number-of-songs'] + ' total songs'
@@ -393,27 +367,27 @@ class SnobaerSocket
         view.add_row(['Kbit/s', status['kbit-rate']])
         view.finish()
       when 'metadata'
-        console.log(update_data, update_data.detail)
-        switch update_data.detail
+        console.log(data, data.detail)
+        switch data.detail
           when 'cover'
-            update_view_playing_cover(update_data)
+            update_view_playing_cover(data)
           when 'lyrics'
-            $('#lyrics-box').html(update_data.results[0])
+            $('#lyrics-box').html(data.results[0])
             show_modal('show-lyrics')
       when 'completion'
         if COMPLETION_HANDLER != null
-          COMPLETION_HANDLER(update_data.result)
+          COMPLETION_HANDLER(data.result)
         COMPLETION_HANDLER = null
       when 'store'
-        switch update_data.target
+        switch data.target
           when 'playing'
-            update_view_playing_list(update_data)
+            update_view_playing_list(data)
           when 'queue'
-            update_view_queue_list(update_data)
+            update_view_queue_list(data)
           when 'database'
-            update_view_database_list(update_data)
+            update_view_database_list(data)
       else
-        console.log('Unknown message type: ', update_data.type)
+        console.log('Unknown message type: ', data.type)
 
   connect_autocomplete: (entry) ->
     entry.typeahead({

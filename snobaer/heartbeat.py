@@ -42,6 +42,12 @@ class Heartbeat:
             self._last_tick = self._current_time_ms()
             GLib.timeout_add(self._interval, self._on_poll_elapsed)
 
+    @staticmethod
+    def format_minutes(seconds):
+        minutes = int(seconds / 60)
+        seconds = int(seconds % 60)
+        return '{:02d}:{:02d}'.format(minutes, seconds)
+
     def _on_poll_elapsed(self):
         'Update every timeslice the player is running a counter'
         if not self._client.is_connected:

@@ -11,7 +11,7 @@ from snobaer.fs import create_file_structure
 from snobaer.web import flask_app
 from snobaer.config import Config
 from snobaer.logger import InternalLogCatcher, create_logger
-from snobaer.protocol import serialize_status, parse_message
+from snobaer.protocol import serialize_status, serialize_heartbeat, parse_message
 from snobaer.mainloop import GLibIOLoop
 from snobaer.heartbeat import Heartbeat
 from snobaer.commandline import parse_arguments
@@ -32,7 +32,9 @@ from tornado.websocket import WebSocketHandler, WebSocketClosedError
 
 class EchoWebSocket(WebSocketHandler):
     def initialize(self, client):
+        LOGGER.debug('Settin up WebsocketHandler')
         client.connect('client-event', self.on_client_event)
+        GLib.timeout_add(500, self.on_heartbeat, client.heartbeat)
         self.client = client
         self.last_song_id = None
 
@@ -50,6 +52,11 @@ class EchoWebSocket(WebSocketHandler):
 
     def on_message(self, message):
         parse_message(self.client, message, self.on_message_processed)
+
+    def on_heartbeat(self, heartbeat):
+        hb = serialize_heartbeat(heartbeat)
+        self.write_message(json.dumps(hb))
+        return True
 
     def on_client_event(self, client, event):
         with client.reffed_status() as status:

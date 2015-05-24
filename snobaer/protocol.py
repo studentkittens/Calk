@@ -48,12 +48,16 @@ import logging
 
 LOGGER = logging.getLogger('proto')
 
+# Internal:
+from snobaer.heartbeat import Heartbeat
+
 # External:
 from gi.repository import Moose
 
 ###############
 #  UTILITIES  #
 ###############
+
 
 def copy_header(document):
     return {
@@ -66,12 +70,23 @@ def copy_header(document):
 ########################
 
 
+def serialize_heartbeat(heartbeat):
+    return {
+        'type': 'hb',
+        'perc': heartbeat.percent * 100,
+        'repr': '{e}/{t}'.format(
+            e=Heartbeat.format_minutes(heartbeat.elapsed),
+            t=Heartbeat.format_minutes(heartbeat.duration)
+        )
+    }
+
+
 def serialize_song(song):
     if song is None:
         return {}
 
     # Only serialize the most needed data for now:
-    keys = ['artist', 'album', 'title', 'genre', 'id', 'uri', 'date']
+    keys = ['artist', 'album', 'title', 'genre', 'id', 'uri']
     return {key: getattr(song.props, key) for key in keys}
 
 
@@ -91,8 +106,9 @@ def serialize_status(client, status, event=None, detail='timer'):
     }
 
     list_needs_update = event & (Moose.Idle.DATABASE | Moose.Idle.QUEUE)
+    events = Moose.Idle(event).value_nicks if event else []
 
-    status_data['status']['events'] = Moose.Idle(event).value_nicks if event else []
+    status_data['status']['events'] = events
     status_data['status']['list-needs-update'] = list_needs_update
     status_data['status']['state'] = serialize_state(status.props.state)
     status_data['status']['song'] = serialize_song(status.get_current_song())
@@ -154,14 +170,13 @@ def _parse_autocomplete_command(client, document, callback):
         print('C', tag)
         tags = [_tag_string_to_enum(tag)]
         print(tag, tags, query)
-        #TODO
     else:
         # Use default tags and last component of string:
         query = full_query.split()[-1]
         full_query = full_query[:-len(query)]
         tags = [
-            Moose.TagType.ARTIST, Moose.TagType.ALBUM, Moose.TagType.ALBUM_ARTIST,
-            Moose.TagType.TITLE, Moose.TagType.GENRE
+            Moose.TagType.ARTIST, Moose.TagType.ALBUM,
+            Moose.TagType.ALBUM_ARTIST, Moose.TagType.TITLE, Moose.TagType.GENRE
         ]
 
     print('Q', full_query, query, tags)
@@ -188,9 +203,9 @@ def _parse_store_command(client, document, callback):
         playlist = client.store.query_sync(query, queue_only=True)
     elif detail == 'database':
         playlist = client.store.query_sync(query, queue_only=False)
-    elif detail == 'stored':
-        playlist_name = document['playlist_name']
-        # TODO
+    else:
+        LOGGER.error('No such store command: ' + str(detail))
+        return
 
     if not is_add_query:
         song_list = []
@@ -266,7 +281,6 @@ def parse_message(client, message, callback):
         return _parse_doc(client, json.loads(message), callback)
     except ValueError as err:
         LOGGER.error('Unable to parse json message:\n' + message + str(err))
-
 
 
 if __name__ == '__main__':
