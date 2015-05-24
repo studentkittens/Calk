@@ -233,7 +233,7 @@ def _parse_metadata_command(client, document, callback):
         download=False
     )
 
-    def _done(_, query):
+    def _done(_, q):
         response = copy_header(document)
         response['results'] = []
 
