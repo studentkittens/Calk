@@ -297,7 +297,7 @@
         "track": "11"
     },
     {
-        "album": "Wieder geil",
+        "album": "Wieder geil!",
         "album_artist": "We Butter the Bread With Butter",
         "artist": "We Butter the Bread With Butter",
         "composer": "We Butter the Bread With Butter",
@@ -306,7 +306,7 @@
         "track": "1"
     },
     {
-        "album": "Wieder geil",
+        "album": "Wieder geil!",
         "album_artist": "We Butter the Bread With Butter",
         "artist": "We Butter the Bread With Butter",
         "composer": "We Butter the Bread With Butter",
@@ -315,7 +315,7 @@
         "track": "2"
     },
     {
-        "album": "Wieder geil",
+        "album": "Wieder geil!",
         "album_artist": "We Butter the Bread With Butter",
         "artist": "We Butter the Bread With Butter",
         "composer": "We Butter the Bread With Butter",
@@ -324,7 +324,7 @@
         "track": "3"
     },
     {
-        "album": "Wieder geil",
+        "album": "Wieder geil!",
         "album_artist": "We Butter the Bread With Butter",
         "artist": "We Butter the Bread With Butter",
         "composer": "We Butter the Bread With Butter",
@@ -333,7 +333,7 @@
         "track": "4"
     },
     {
-        "album": "Wieder geil",
+        "album": "Wieder geil!",
         "album_artist": "We Butter the Bread With Butter",
         "artist": "We Butter the Bread With Butter",
         "composer": "We Butter the Bread With Butter",
@@ -342,7 +342,7 @@
         "track": "5"
     },
     {
-        "album": "Wieder geil",
+        "album": "Wieder geil!",
         "album_artist": "We Butter the Bread With Butter",
         "artist": "We Butter the Bread With Butter",
         "composer": "We Butter the Bread With Butter",
@@ -351,7 +351,7 @@
         "track": "6"
     },
     {
-        "album": "Wieder geil",
+        "album": "Wieder geil!",
         "album_artist": "We Butter the Bread With Butter",
         "artist": "We Butter the Bread With Butter",
         "composer": "We Butter the Bread With Butter",
@@ -360,7 +360,7 @@
         "track": "7"
     },
     {
-        "album": "Wieder geil",
+        "album": "Wieder geil!",
         "album_artist": "We Butter the Bread With Butter",
         "artist": "We Butter the Bread With Butter",
         "composer": "We Butter the Bread With Butter",
@@ -369,7 +369,7 @@
         "track": "8"
     },
     {
-        "album": "Wieder geil",
+        "album": "Wieder geil!",
         "album_artist": "We Butter the Bread With Butter",
         "artist": "We Butter the Bread With Butter",
         "composer": "We Butter the Bread With Butter",
@@ -378,7 +378,7 @@
         "track": "9"
     },
     {
-        "album": "Wieder geil",
+        "album": "Wieder geil!",
         "album_artist": "We Butter the Bread With Butter",
         "artist": "We Butter the Bread With Butter",
         "composer": "We Butter the Bread With Butter",
@@ -635,7 +635,7 @@
         "artist": "Lana Del Rey",
         "composer": "Lana Del Rey",
         "genre": " Pop",
-        "title": "Born to Die (PDP / 13 remix)",
+        "title": "Off to the Races",
         "track": "2"
     },
     {
@@ -644,7 +644,7 @@
         "artist": "Lana Del Rey",
         "composer": "Lana Del Rey",
         "genre": " Pop",
-        "title": "Born to Die (Woodkid & the Shoes remix)",
+        "title": "Blue Jeans",
         "track": "3"
     },
     {
@@ -653,7 +653,7 @@
         "artist": "Lana Del Rey",
         "composer": "Lana Del Rey",
         "genre": " Pop",
-        "title": "Born to Die (Parrade remix)",
+        "title": "Video Games",
         "track": "4"
     },
     {
@@ -662,7 +662,7 @@
         "artist": "Lana Del Rey",
         "composer": "Lana Del Rey",
         "genre": " Pop",
-        "title": "Born to Die (Chad Valley remix)",
+        "title": "Diet Mountain Dew",
         "track": "5"
     },
     {
@@ -671,7 +671,7 @@
         "artist": "Lana Del Rey",
         "composer": "Lana Del Rey",
         "genre": " Pop",
-        "title": "Born to Die (Gucci Vump remix)",
+        "title": "National Anthem",
         "track": "6"
     },
     {
@@ -680,7 +680,304 @@
         "artist": "Lana Del Rey",
         "composer": "Lana Del Rey",
         "genre": " Pop",
-        "title": "Video Games (Rainer Weichhold & Nick Olivetti clubmix)",
+        "title": "Dark Paradise",
         "track": "7"
+    },
+    {
+        "album": "Born to Die",
+        "album_artist": "Lana Del Rey",
+        "artist": "Lana Del Rey",
+        "composer": "Lana Del Rey",
+        "genre": " Pop",
+        "title": "Radio",
+        "track": "8"
+    },
+    {
+        "album": "Born to Die",
+        "album_artist": "Lana Del Rey",
+        "artist": "Lana Del Rey",
+        "composer": "Lana Del Rey",
+        "genre": " Pop",
+        "title": "Carmen",
+        "track": "9"
+    },
+    {
+        "album": "Born to Die",
+        "album_artist": "Lana Del Rey",
+        "artist": "Lana Del Rey",
+        "composer": "Lana Del Rey",
+        "genre": " Pop",
+        "title": "Million Dollar Man",
+        "track": "10"
+    },
+    {
+        "album": "Born to Die",
+        "album_artist": "Lana Del Rey",
+        "artist": "Lana Del Rey",
+        "composer": "Lana Del Rey",
+        "genre": " Pop",
+        "title": "Summertime Sadness",
+        "track": "11"
+    },
+    {
+        "album": "Born to Die",
+        "album_artist": "Lana Del Rey",
+        "artist": "Lana Del Rey",
+        "composer": "Lana Del Rey",
+        "genre": " Pop",
+        "title": "This Is What Makes Us Girls",
+        "track": "12"
+    },
+    {
+        "album": "Born to Die",
+        "album_artist": "Lana Del Rey",
+        "artist": "Lana Del Rey",
+        "composer": "Lana Del Rey",
+        "genre": " Pop",
+        "title": "Without You",
+        "track": "13"
+    },
+    {
+        "album": "Born to Die",
+        "album_artist": "Lana Del Rey",
+        "artist": "Lana Del Rey",
+        "composer": "Lana Del Rey",
+        "genre": " Pop",
+        "title": "Lolita",
+        "track": "14"
+    },
+    {
+        "album": "Hasenchartbreaker",
+        "album_artist": "Knorkator",
+        "artist": "Knorkator",
+        "composer": "Knorkator",
+        "genre": " Knorkester",
+        "title": "Hardcore",
+        "track": "1"
+    },
+    {
+        "album": "Hasenchartbreaker",
+        "album_artist": "Knorkator",
+        "artist": "Knorkator",
+        "composer": "Knorkator",
+        "genre": " Knorkester",
+        "title": "Buchstabe",
+        "track": "2"
+    },
+    {
+        "album": "Hasenchartbreaker",
+        "album_artist": "Knorkator",
+        "artist": "Knorkator",
+        "composer": "Knorkator",
+        "genre": " Knorkester",
+        "title": "Ich bin ein ganz besond'rer Mann",
+        "track": "3"
+    },
+    {
+        "album": "Hasenchartbreaker",
+        "album_artist": "Knorkator",
+        "artist": "Knorkator",
+        "composer": "Knorkator",
+        "genre": " Knorkester",
+        "title": "Schl\u00fcpfer",
+        "track": "4"
+    },
+    {
+        "album": "Hasenchartbreaker",
+        "album_artist": "Knorkator",
+        "artist": "Knorkator",
+        "composer": "Knorkator",
+        "genre": " Knorkester",
+        "title": "Das Lied",
+        "track": "5"
+    },
+    {
+        "album": "Hasenchartbreaker",
+        "album_artist": "Knorkator",
+        "artist": "Knorkator",
+        "composer": "Knorkator",
+        "genre": " Knorkester",
+        "title": "Die Narrenkappe",
+        "track": "6"
+    },
+    {
+        "album": "Hasenchartbreaker",
+        "album_artist": "Knorkator",
+        "artist": "Knorkator",
+        "composer": "Knorkator",
+        "genre": " Knorkester",
+        "title": "With a Little Help From My Friends",
+        "track": "7"
+    },
+    {
+        "album": "Hasenchartbreaker",
+        "album_artist": "Knorkator",
+        "artist": "Knorkator",
+        "composer": "Knorkator",
+        "genre": " Knorkester",
+        "title": "Highway to Hell",
+        "track": "8"
+    },
+    {
+        "album": "Hasenchartbreaker",
+        "album_artist": "Knorkator",
+        "artist": "Knorkator",
+        "composer": "Knorkator",
+        "genre": " Knorkester",
+        "title": "Alles ist Schei\u00dfe",
+        "track": "9"
+    },
+    {
+        "album": "Hasenchartbreaker",
+        "album_artist": "Knorkator",
+        "artist": "Knorkator",
+        "composer": "Knorkator",
+        "genre": " Knorkester",
+        "title": "Geh zu ihr",
+        "track": "10"
+    },
+    {
+        "album": "Hasenchartbreaker",
+        "album_artist": "Knorkator",
+        "artist": "Knorkator",
+        "composer": "Knorkator",
+        "genre": " Knorkester",
+        "title": "Wenn mir einer was will",
+        "track": "11"
+    },
+    {
+        "album": "Hasenchartbreaker",
+        "album_artist": "Knorkator",
+        "artist": "Knorkator",
+        "composer": "Knorkator",
+        "genre": " Knorkester",
+        "title": "(Zeig mir den) Weg nach unten",
+        "track": "12"
+    },
+    {
+        "album": "Hasenchartbreaker",
+        "album_artist": "Knorkator",
+        "artist": "Knorkator",
+        "composer": "Knorkator",
+        "genre": " Knorkester",
+        "title": "A",
+        "track": "13"
+    },
+    {
+        "album": "Hasenchartbreaker",
+        "album_artist": "Knorkator",
+        "artist": "Knorkator",
+        "composer": "Knorkator",
+        "genre": " Knorkester",
+        "title": "Weihnachtsschimpfe",
+        "track": "14"
+    },
+    {
+        "album": "Hefty Fine",
+        "album_artist": "Bloodhound Gang",
+        "artist": "Bloodhound Gang",
+        "composer": "Bloodhound Gang",
+        "genre": " Crossover",
+        "title": "Strictly for the Tardcore (skit)",
+        "track": "1"
+    },
+    {
+        "album": "Hefty Fine",
+        "album_artist": "Bloodhound Gang",
+        "artist": "Bloodhound Gang",
+        "composer": "Bloodhound Gang",
+        "genre": " Crossover",
+        "title": "Balls Out",
+        "track": "2"
+    },
+    {
+        "album": "Hefty Fine",
+        "album_artist": "Bloodhound Gang",
+        "artist": "Bloodhound Gang",
+        "composer": "Bloodhound Gang",
+        "genre": " Crossover",
+        "title": "Foxtrot Uniform Charlie Kilo",
+        "track": "3"
+    },
+    {
+        "album": "Hefty Fine",
+        "album_artist": "Bloodhound Gang",
+        "artist": "Bloodhound Gang",
+        "composer": "Bloodhound Gang",
+        "genre": " Crossover",
+        "title": "I\u2019m the Least You Could Do",
+        "track": "4"
+    },
+    {
+        "album": "Hefty Fine",
+        "album_artist": "Bloodhound Gang",
+        "artist": "Bloodhound Gang",
+        "composer": "Bloodhound Gang",
+        "genre": " Crossover",
+        "title": "Farting With a Walkman On",
+        "track": "5"
+    },
+    {
+        "album": "Hefty Fine",
+        "album_artist": "Bloodhound Gang",
+        "artist": "Bloodhound Gang",
+        "composer": "Bloodhound Gang",
+        "genre": " Crossover",
+        "title": "Diarrhea Runs in the Family",
+        "track": "6"
+    },
+    {
+        "album": "Hefty Fine",
+        "album_artist": "Bloodhound Gang",
+        "artist": "Bloodhound Gang",
+        "composer": "Bloodhound Gang",
+        "genre": " Crossover",
+        "title": "Ralph Wiggum",
+        "track": "7"
+    },
+    {
+        "album": "Hefty Fine",
+        "album_artist": "Bloodhound Gang",
+        "artist": "Bloodhound Gang",
+        "composer": "Bloodhound Gang",
+        "genre": " Crossover",
+        "title": "Something Diabolical",
+        "track": "8"
+    },
+    {
+        "album": "Hefty Fine",
+        "album_artist": "Bloodhound Gang",
+        "artist": "Bloodhound Gang",
+        "composer": "Bloodhound Gang",
+        "genre": " Crossover",
+        "title": "Overheard in a Wawa Parking Lot (skit)",
+        "track": "9"
+    },
+    {
+        "album": "Hefty Fine",
+        "album_artist": "Bloodhound Gang",
+        "artist": "Bloodhound Gang",
+        "composer": "Bloodhound Gang",
+        "genre": " Crossover",
+        "title": "Pennsylvania",
+        "track": "10"
+    },
+    {
+        "album": "Hefty Fine",
+        "album_artist": "Bloodhound Gang",
+        "artist": "Bloodhound Gang",
+        "composer": "Bloodhound Gang",
+        "genre": " Crossover",
+        "title": "Uhn Tiss Uhn Tiss Uhn Tiss",
+        "track": "11"
+    },
+    {
+        "album": "Hefty Fine",
+        "album_artist": "Bloodhound Gang",
+        "artist": "Bloodhound Gang",
+        "composer": "Bloodhound Gang",
+        "genre": " Crossover",
+        "title": "No Hard Feelings / Hefty Fine",
+        "track": "12"
     }
 ]

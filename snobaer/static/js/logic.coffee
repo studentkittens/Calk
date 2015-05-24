@@ -242,22 +242,36 @@ update_view_playlists = (status) ->
 
 
 update_outputs_dialog = (outputs) ->
-  if $.isEmptyObject(outputs)
-    return
-
   output_list = $('#view-outputs-list')
+  output_list.empty()
 
-  # TODO
-  html = ""
-  for name, info in outputs
-    console.log('  ', name, info)
-    color = if info.on then 'success' else 'warning'
-    html += """<tr><td><label class="btn checkbutton btn-#{color} active">
-        <input type="checkbox" autocomplete="off" checked>
-        <span class="glyphicon glyphicon-ok">#{name}</span>
-      </label></td></tr>"""
+  $.each(outputs, (name, enabled) ->
+    ckbox = $('<input type="checkbox" class="toggle-switch"/>')
+    ckbox.prop('checked', enabled)
+    ckbox.prop('output-name', name)
 
-  output_list.html(html)
+    row = $('<tr></tr>')
+    row.append($("<td class=\"text-primary\">#{name}</td>"))
+    row.append(
+      $("<td></td>")
+        .append(ckbox)
+    )
+
+    output_list.append(row)
+  )
+    
+  if output_list.is(':empty')
+    output_list.append(
+      $('<tr><td>No outputs. Cry for help.</td></tr>')
+    )
+
+  $('.toggle-switch').bootstrapSwitch({
+    size: 'small',
+    onColor: 'success',
+    onSwitchChange: (event, state) ->
+      name = $(this).prop('output-name')
+      WEBSOCKET.send_mpd("('output-switch', '#{name}', #{state})")
+  })
 
 #####################
 #  WEBSOCKET STUFF  #
@@ -321,8 +335,6 @@ class SnobaerSocket
     data = JSON.parse msg.data
 
     switch data.type
-      when 'hb'  # Heartbeat.
-        update_progressbar(data)
       when 'status'  # Status update.
         status = data.status
         update_play_modes(status)
@@ -357,7 +369,6 @@ class SnobaerSocket
         view.add_row(['Kbit/s', status['kbit-rate']])
         view.finish()
       when 'metadata'
-        console.log(data, data.detail)
         switch data.detail
           when 'cover'
             update_view_playing_cover(data)
@@ -376,6 +387,8 @@ class SnobaerSocket
             update_view_queue_list(data)
           when 'database'
             update_view_database_list(data)
+      when 'hb'  # Heartbeat.
+        update_progressbar(data)
       else
         console.log('Unknown message type: ', data.type)
 
@@ -422,7 +435,7 @@ view_switch = (views, name) ->
       button.parent().addClass('active')
     else
       elem.hide()
-      button.fadeTo(500, 0.5)
+      button.fadeTo(500, 0.4)
       button.parent().removeClass('active')
 
 $ ->
@@ -491,8 +504,3 @@ $ ->
       $('#btn-' + action).click ->
         is_active = $(this).hasClass('btn-info')
         WEBSOCKET.send_mpd("('#{action}', #{not is_active})")
-
-  $('.toggle-switch').bootstrapSwitch({
-    size: 'small',
-    onColor: 'success'
-  })

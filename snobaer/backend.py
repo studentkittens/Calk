@@ -29,7 +29,7 @@ from tornado.websocket import WebSocketHandler, WebSocketClosedError
 
 class FrontedWSHandler(WebSocketHandler):
     def initialize(self, client):
-        LOGGER.debug('Settin up WebsocketHandler')
+        LOGGER.debug('Setting up WebsocketHandler')
 
         # Make sure we get notified on client events.
         # On each client event we'll push an status update.
@@ -60,7 +60,10 @@ class FrontedWSHandler(WebSocketHandler):
 
     def on_heartbeat(self, heartbeat):
         hb = serialize_heartbeat(heartbeat)
-        self.write_message(json.dumps(hb))
+        try:
+            self.write_message(json.dumps(hb))
+        except WebSocketClosedError:
+            self.close()
         return True
 
     def on_client_event(self, client, event):
@@ -71,7 +74,7 @@ class FrontedWSHandler(WebSocketHandler):
             serialized_data = serialize_status(client, status, event)
 
             current_song = status.get_current_song()
-            if current_song is not None and self.last_song_id is None:
+            if current_song is not None or self.last_song_id is None:
                 if self.last_song_id != current_song.props.id:
                     serialized_data['status']['song-changed'] = True
                     if current_song:
@@ -83,7 +86,7 @@ class FrontedWSHandler(WebSocketHandler):
                 self.close()
 
     def on_close(self):
-        print("WebSocket closed")
+        LOGGER.debug("WebSocket closed")
         self.client.disconnect_by_func(self.on_client_event)
 
 

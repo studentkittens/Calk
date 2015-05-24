@@ -345,7 +345,7 @@
 
 
 <div id="modal-outputs" class="modal fade">
-  <div class="modal-dialog modal-sm">
+  <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header modal-header-primary">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -399,6 +399,7 @@
 {% endblock %}
 
 {% block styles %}
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
 <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}" type="text/css">
 <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap-switch.min.css')}}" type="text/css">
 <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap-glyphicons.css')}}" type="text/css">

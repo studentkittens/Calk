@@ -11,8 +11,7 @@ General Message format:
 
     {
         'type': (cmd|info)
-        'name': [cmd]
-        'params': [p1, p2, p3, ...]
+        'detail': [cmd]
     }
 
 Client -> Server types:
@@ -117,10 +116,9 @@ def serialize_status(client, status, event=None, detail='timer'):
     for playlist in client.store.get_known_playlists():
         status_data['status']['playlists'].append(playlist)
 
-    # TODO: This crashes for stupid reasons.
-    # status_data['outputs'] = {}
-    # for name, (_, id_, enabled) in status.outputs_get().items():
-    #     status_data['outputs'][name] = {'id': id_, 'on': enabled}
+    status_data['outputs'] = {}
+    for name, (_, id_, enabled) in status.outputs_get().items():
+        status_data['outputs'][name] = enabled
 
     return status_data
 
