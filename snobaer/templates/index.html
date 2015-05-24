@@ -264,16 +264,13 @@
 <div id="modal-about" class="modal fade">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header modal-header-primary">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h4 class="modal-title">About</h4>
       </div>
       <div class="modal-body">
             <img alt="About" width="550px" src="{{url_for('static',
             filename='about.png')}}">
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
@@ -283,15 +280,12 @@
 <div id="modal-sysinfo" class="modal fade">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header modal-header-primary">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h4 class="modal-title">System information</h4>
       </div>
       <div class="modal-body">
           <iframe width="550" height="600" frameBorder="0" src="/sysinfo"></iframe>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
@@ -300,7 +294,7 @@
 <div id="modal-queue-clear" class="modal fade">
   <div class="modal-dialog modal-sm">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header modal-header-success">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h4 class="modal-title">Really clear Queue?</h4>
       </div>
@@ -317,7 +311,7 @@
 <div id="modal-queue-save" class="modal fade">
   <div class="modal-dialog modal-sm">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header modal-header-success">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h4 class="modal-title">Save playlist to name:</h4>
       </div>
@@ -338,15 +332,12 @@
 <div id="modal-show-lyrics" class="modal fade">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header modal-header-primary">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h4 class="modal-title">Lyrics:</h4>
       </div>
       <div class="modal-body">
         <pre id="lyrics-box"></pre>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
@@ -356,7 +347,7 @@
 <div id="modal-outputs" class="modal fade">
   <div class="modal-dialog modal-sm">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header modal-header-primary">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h4 class="modal-title">Audio Outputs</h4>
       </div>
@@ -376,9 +367,6 @@
               </tr>
           </table>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
-      </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
@@ -393,9 +381,6 @@
       <div class="modal-body">
         <p>Connection lost to mothership.</p>
         <p>Try to press <b>F5</b> once it's back.</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
