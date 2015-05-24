@@ -74,11 +74,15 @@ class FrontedWSHandler(WebSocketHandler):
             serialized_data = serialize_status(client, status, event)
 
             current_song = status.get_current_song()
-            if current_song is not None or self.last_song_id is None:
-                if self.last_song_id != current_song.props.id:
-                    serialized_data['status']['song-changed'] = True
-                    if current_song:
-                        self.last_song_id = current_song.props.id
+            if current_song is not None:
+                current_song_id = current_song.props.id
+            else:
+                current_song_id = -1
+
+            if self.last_song_id != current_song_id:
+                serialized_data['status']['song-changed'] = True
+                if current_song:
+                    self.last_song_id = current_song.props.id
 
             try:
                 self.write_message(json.dumps(serialized_data))
