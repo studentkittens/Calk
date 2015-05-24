@@ -81,8 +81,7 @@ class FrontedWSHandler(WebSocketHandler):
 
             if self.last_song_id != current_song_id:
                 serialized_data['status']['song-changed'] = True
-                if current_song:
-                    self.last_song_id = current_song.props.id
+                self.last_song_id = current_song_id
 
             try:
                 self.write_message(json.dumps(serialized_data))

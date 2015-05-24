@@ -39,8 +39,20 @@ state_file "{top_dir}/mpd.state"
 
 audio_output {{
         type "fifo"
-        name "YouHopefullyDontUseThisDoYou"
-        path "{top_dir}/mpd.fifo"
+        name "Alsa"
+        path "{top_dir}/mpd.1.fifo"
+}}
+
+audio_output {{
+        type "fifo"
+        name "HTTP"
+        path "{top_dir}/mpd.2.fifo"
+}}
+
+audio_output {{
+        type "fifo"
+        name "Pulseaudio"
+        path "{top_dir}/mpd.3.fifo"
 }}
 
 # should run on different port than normal mpd
