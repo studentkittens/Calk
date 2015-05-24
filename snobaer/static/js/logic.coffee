@@ -82,13 +82,6 @@ class PlaylistTable
 #  STATUS UPDATING  #
 #####################
 
-# TODO: Use server's more exact heartbeat.
-format_minutes = (seconds) ->
-  secs = Math.round(seconds % 60)
-  secs = '0' + secs if secs < 10
-  return Math.round(seconds / 60) + ':' + secs
-
-
 update_play_modes = (status) ->
   states ={
     'repeat': status.repeat, 'random': status.random,
@@ -99,9 +92,6 @@ update_play_modes = (status) ->
 
 update_progressbar = (heartbeat) ->
   pg = $('#seekbar')
-
-  if pg.attr('update-id')
-    clearTimeout(parseInt(pg.attr('update-id')))
 
   if heartbeat.perc < 0.0001
     pg.addClass('progress-bar-striped')

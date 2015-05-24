@@ -30,16 +30,24 @@ from tornado.web import FallbackHandler, Application
 from tornado.websocket import WebSocketHandler, WebSocketClosedError
 
 
-class EchoWebSocket(WebSocketHandler):
+class FrontedWSHandler(WebSocketHandler):
     def initialize(self, client):
         LOGGER.debug('Settin up WebsocketHandler')
+
+        # Make sure we get notified on client events.
+        # On each client event we'll push an status update.
         client.connect('client-event', self.on_client_event)
-        GLib.timeout_add(500, self.on_heartbeat, client.heartbeat)
+
+        # Trigger a heartbeat every second
+        # (because a pulse of 60 is considered healthy.)
+        GLib.timeout_add(1000, self.on_heartbeat, client.heartbeat)
         self.client = client
         self.last_song_id = None
 
     def open(self):
         LOGGER.debug("WebSocket opened")
+
+        # Trigger an initial update event (a player event to be exact)
         self.on_client_event(self.client, Moose.Idle.PLAYER)
 
     def on_message_processed(self, json_doc):
@@ -139,7 +147,7 @@ if __name__ == "__main__":
     loop.install()
 
     tornado_app = Application([
-        (r"/ws", EchoWebSocket, {'client': client}),
+        (r"/ws", FrontedWSHandler, {'client': client}),
         (r".*", FallbackHandler, dict(fallback=WSGIContainer(flask_app)))
     ])
     tornado_app.listen(8080, address='0.0.0.0')
