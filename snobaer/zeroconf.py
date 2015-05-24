@@ -11,10 +11,11 @@ LOGGER = logging.getLogger('zeroconf')
 
 
 def print_server(browser):
-    logging.info('-- SERVER LIST --')
+    LOGGER.info('-- SERVER LIST --')
     for server in browser:
         for attr, value in server:
-            logging.info('{:>10} : {}'.format(attr, value))
+            LOGGER.info('{:>10} : {}'.format(attr, value))
+        LOGGER.info('')
 
 
 def zeroconf_state_changed(browser):
@@ -26,21 +27,18 @@ def zeroconf_state_changed(browser):
             500, lambda: print_server(browser)
         )
     elif state is Moose.ZeroconfState.ERROR:
-        logging.error('Error', browser.get_error())
+        LOGGER.error('Error', browser.get_error())
     elif state is Moose.ZeroconfState.ALL_FOR_NOW:
-        logging.info('-- ALL FOUND FOR NOW --')
+        LOGGER.info('-- ALL FOUND FOR NOW --')
     elif state is Moose.ZeroconfState.UNCONNECTED:
-        logging.error('-- CONNECTION LOST --')
+        LOGGER.error('-- CONNECTION LOST --')
     else:
-        logging.warning(
+        LOGGER.warning(
             'Unknown state. ZeroconfBrowser, you\'re drunk, go home.'
         )
 
 
-if __name__ == '__main__':
-    import logger
-    logger.create_logger(None)
-
+def print_servers():
     browser = Moose.ZeroconfBrowser()
     if browser.get_state() is not Moose.ZeroconfState.CONNECTED:
         logging.critical('No avahi running, eh?')
@@ -55,3 +53,7 @@ if __name__ == '__main__':
         loop.run()
     except KeyboardInterrupt:
         logging.warning('[Ctrl-C]')
+
+
+if __name__ == '__main__':
+    print_servers()

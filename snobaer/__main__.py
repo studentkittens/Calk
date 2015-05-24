@@ -1,162 +1,110 @@
 #!/usr/bin/env python3
 # encoding:utf8
 
+'''Snøbær is a neat web mpd client.
+
+This is the server side application.
+
+Usage:
+    snobaer
+    snobaer [options] [-v...] [-V...]
+    snobaer -H | --help
+    snobaer -? | --version
+    snobaer -l | --list-servers
+
+Options:
+    -h --host=<addr>         Define the MPD to connect to [default: localhost]
+    -p --port=<mpdport>      Define the MPD's port. [default: 6666]
+    -b --backend-port=<port> Define the backend's port [default: 8080]
+    -l --list-servers        List all reachable MPD servers via Zeroconf.
+
+Misc Options:
+    -H --help            Show this help text.
+    -? --version         Show a summary about Snøbær's version.
+    -v --louder          Be more verbose (can be given more than once)
+    -V --quieter         Be less verbose (can be given more than once)
+
+Examples:
+
+    snobaer -l
+    snobaer -h localhost -p 6600 -v -b 8080
+'''
+
 # Stdlib:
-import sys
-import json
 import logging
 
 # Internal:
-from snobaer.fs import create_file_structure
-from snobaer.web import flask_app
 from snobaer.config import Config
 from snobaer.logger import InternalLogCatcher, create_logger
-from snobaer.protocol import serialize_status, serialize_heartbeat, parse_message
-from snobaer.mainloop import GLibIOLoop
-from snobaer.heartbeat import Heartbeat
-from snobaer.commandline import parse_arguments
-
-# Make sure logging is initialized early.
-ROOT_LOGGER = create_logger(None)
-INTERNAL_LOGCATCHER = InternalLogCatcher()
-LOGGER = logging.getLogger('server')
+from snobaer.backend import run_backend
+from snobaer.zeroconf import print_servers
 
 # External:
-from gi.repository import Moose
-from gi.repository import GLib
-
-from tornado.wsgi import WSGIContainer
-from tornado.web import FallbackHandler, Application
-from tornado.websocket import WebSocketHandler, WebSocketClosedError
-
-
-class FrontedWSHandler(WebSocketHandler):
-    def initialize(self, client):
-        LOGGER.debug('Settin up WebsocketHandler')
-
-        # Make sure we get notified on client events.
-        # On each client event we'll push an status update.
-        client.connect('client-event', self.on_client_event)
-
-        # Trigger a heartbeat every second
-        # (because a pulse of 60 is considered healthy.)
-        GLib.timeout_add(1000, self.on_heartbeat, client.heartbeat)
-        self.client = client
-        self.last_song_id = None
-
-    def open(self):
-        LOGGER.debug("WebSocket opened")
-
-        # Trigger an initial update event (a player event to be exact)
-        self.on_client_event(self.client, Moose.Idle.PLAYER)
-
-    def on_message_processed(self, json_doc):
-        try:
-            self.write_message(json_doc)
-        except Exception as err:
-            LOGGER.error(
-                "Unable to write back message:" + str(json_doc) + str(err)
-            )
-
-    def on_message(self, message):
-        parse_message(self.client, message, self.on_message_processed)
-
-    def on_heartbeat(self, heartbeat):
-        hb = serialize_heartbeat(heartbeat)
-        self.write_message(json.dumps(hb))
-        return True
-
-    def on_client_event(self, client, event):
-        with client.reffed_status() as status:
-            if status is None:
-                return
-
-            serialized_data = serialize_status(client, status, event)
-
-            current_song = status.get_current_song()
-            if current_song is not None:
-                if self.last_song_id is None or self.last_song_id != current_song.props.id:
-                    serialized_data['status']['song-changed'] = True
-                    if current_song:
-                        self.last_song_id = current_song.props.id
-
-            try:
-                self.write_message(json.dumps(serialized_data))
-            except WebSocketClosedError:
-                self.close()
-
-    def on_close(self):
-        print("WebSocket closed")
-        self.client.disconnect_by_func(self.on_client_event)
+try:
+    import docopt
+except ImportError:
+    import sys
+    print('-- docopt not found. Please run:')
+    print('-- pip install docopt           ')
+    sys.exit(-1)
 
 
-def log_client_event(client, events):
-    LOGGER.debug('client event: {}'.format(Moose.Idle(events)))
+def configure_loglevel(logger, count):
+    level = {
+        -3: logging.CRITICAL,
+        -2: logging.ERROR,
+        -1: logging.WARNING,
+        +0: logging.INFO,
+        +1: logging.DEBUG
+    }.get(count, logging.WARNING)
+    logger.setLevel(level)
 
 
-def log_connection_event(client, server_changed):
-    LOGGER.warning('connection changed: connected={} server-changed={}'.format(
-        "yes" if client.is_connected() else "no",
-        "yes" if server_changed else "no"
-    ))
+def parse_arguments(cfg, logger):
+    args = docopt.docopt(__doc__, version='0.1')
 
-    # Schedule a reconnect if needed:
-    if client.is_connected() is False:
-        LOGGER.warning('Attempting reconnect in 2 seconds.')
-        host, port = cfg['mpd.host'], cfg['mpd.port']
-        GLib.timeout_add(2000, lambda: not client.connect_to(host, port, 200))
+    if args['--list-servers']:
+        print_servers()
+        return False
 
+    if args['--version']:
+        print('Snøbær pre-release version. Look at GitHub for more info:')
+        print('https://github.com/studentkittens/snobaer')
+        return False
 
-def create_client(cfg):
-    client = Moose.Client.new(Moose.Protocol.DEFAULT)
-    client.connect('connectivity', log_connection_event)
-    client.connect('client-event', log_client_event)
-    client.props.timer_interval = 1.0
-    client.timer_set_active(True)
-
-    client.connect_to(cfg['mpd.host'], cfg['mpd.port'], 200)
-
-    # Monkey patch some useful python side properties:
-    client.heartbeat = Heartbeat(client)
-    client.store = Moose.Store.new(client)
-    client.metadata = Moose.Metadata(database_location=cfg['fs.cache_dir'])
-    return client
+    cfg['mpd.host'] = args['--host']
+    cfg['mpd.port'] = int(args['--port'])
+    cfg['backend.port'] = int(args['--backend-port'])
+    cfg['backend.verbosity'] = configure_loglevel(
+        logger, args['--louder'] - args['--quieter']
+    )
+    return True
 
 
-if __name__ == "__main__":
-    cfg = Config()
-    cfg.add_defaults({
+if __name__ == '__main__':
+    # Make sure logging is initialized early.
+    root_logger = create_logger(None)
+
+    # Make sure internal messages land on the same logging "bus"
+    internal_logcatcher = InternalLogCatcher()
+
+    # actual logger for this module.
+    logger = logging.getLogger('commandline')
+
+    # Create the config and add the defaults.
+    cfg = Config({
         'mpd': {
             'host': 'localhost',
             'port': 6666,
             'timeout': 200.0
+        },
+        'backend': {
+            'port': 8080
         }
     })
-    parse_arguments(cfg)
-
-    LOGGER.critical('Hello, Im Herbert.')
-    LOGGER.error('Im a logger..')
-    LOGGER.warning('...and will guide you...')
-    LOGGER.info('...through the various logging levels.')
-    LOGGER.debug('Oh, you can see debug messages too?')
-
-    create_file_structure(cfg)
-    client = create_client(cfg)
-
-    loop = GLibIOLoop()
-    loop.install()
-
-    tornado_app = Application([
-        (r"/ws", FrontedWSHandler, {'client': client}),
-        (r".*", FallbackHandler, dict(fallback=WSGIContainer(flask_app)))
-    ])
-    tornado_app.listen(8080, address='0.0.0.0')
 
     try:
-        LOGGER.info('Running on localhost:8080')
-        loop.start()
-    except KeyboardInterrupt:
-        # Hack to hide the '^C' displayed in the cmdline.
-        sys.stderr.write('  \r')
-        LOGGER.warning('[interrupted]')
-        loop.close()
+        if parse_arguments(cfg, root_logger):
+            run_backend(cfg)
+    finally:
+        cfg.save()

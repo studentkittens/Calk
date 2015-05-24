@@ -56,9 +56,10 @@ class Config(GObject.Object):
 
     Loads and saves config params in a .yaml file
     """
-    def __init__(self):
+    def __init__(self, defaults={}):
         GObject.Object.__init__(self)
         self._data = {}
+        self.add_defaults(defaults)
 
     def get(self, name, default=None, _next=None):
         """Get a configuration value by name
