@@ -1,13 +1,19 @@
 from setuptools import setup
 
 setup(
-    name='calk',
-    version='0.0',
-    description='A stupid web mpd client',
-    url='http://github.com/studentkittens/calk',
-    author='Cat & Moose',
+    name='snobaer',
+    version='0.1',
+    description='A neat web mpd client',
+    url='http://github.com/studentkittens/snobaer',
+    author='Christopher Pahl',
     author_email='sahib@online.de',
+    long_description=open('README.rst').read(),
     license='GPLv3',
-    packages=['calk'],
-    zip_safe=False
+    packages=['snobaer'],
+    package_data={'snobaer': [
+        'templates/*',
+        'static/js/*',
+        'static/css/*',
+        'static/fonts/*',
+    ]}
 )
