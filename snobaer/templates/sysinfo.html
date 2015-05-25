@@ -57,9 +57,12 @@
 
 {% endblock %}
 
+{% block scripts %}
+<script src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
+<!-- DO NOT CALL super() here -->
+{% endblock %}
+
 {% block styles %}
-{{super()}}
 <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}" type="text/css">
-<link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap-glyphicons.css')}}" type="text/css">
-<link rel="stylesheet" href="{{url_for('static', filename='css/custom.css')}}" type="text/css">
+<!-- DO NOT CALL super() here -->
 {% endblock %}

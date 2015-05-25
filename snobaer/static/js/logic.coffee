@@ -2,9 +2,11 @@
 #  GLOBALS  #
 #############
 
-# TODO: Reduce visibility of some of those?
-SERVER_URL = "ws://localhost:8080/ws"
-WEBSOCKET = null
+# Instance of our BACKEND-utility class.
+BACKEND = null
+
+# Id of the last song. Used to identify
+# the row that needs to be highlighed.
 LAST_SONG_ID = -1
 
 # Stupid hack to save the completion callback
@@ -12,7 +14,11 @@ LAST_SONG_ID = -1
 # from the server.
 COMPLETION_HANDLER = null
 
+#####################
+# UTILITY FUNCTIONS #
+#####################
 
+# Show a modal window by name.
 show_modal = (name) ->
   $('#modal-' + name).modal({
     'backdrop': 'static',
@@ -20,10 +26,50 @@ show_modal = (name) ->
     'show': true
   })
 
+# Guess websocket uri from the current url.
+find_weboscket_url = ->
+  # Misuse a <a> tag as url parser:
+  parser = document.createElement('a')
+  parser.href = window.location
+  return 'ws://' + parser.host + '/ws'
+
+# Make entry/go-button usable via search.
+# calls `callback` once input was made.
+connect_search = (textbox, button, callback) ->
+  textbox.keypress (ev) ->
+    if ev.keyCode == 13
+      callback(textbox.val())
+
+  button.click ->
+    callback(textbox.val())
+
+  textbox.on('input propertychange paste', ->
+    unless textbox.val()
+      callback('*')
+  )
+
+# Switch to a certain view by name.
+view_switch = (views, name) ->
+  class_name = '#view-' + name
+  for view in views
+    view_name = ('#view-' + view)
+    elem = $(view_name)
+    button = $('#switch-' + view + '-view')
+    if view_name == class_name
+      elem.show()
+      button.fadeTo(500, 1.0)
+      button.parent().addClass('active')
+    else
+      elem.hide()
+      button.fadeTo(500, 0.4)
+      button.parent().removeClass('active')
+
+# Playlist utility table (a bit ugly, sorry.)
 class PlaylistTable
   constructor: (
     table_id, @glyphicon='plus',
     @fn_row=null, @fn_menu=null, header=true) ->
+
     @old_table = $(table_id)
     @old_table.empty()
     @table = @old_table.clone(false)
@@ -77,7 +123,6 @@ class PlaylistTable
   finish: ->
     @old_table.replaceWith(@table)
     
-
 #####################
 #  STATUS UPDATING  #
 #####################
@@ -92,11 +137,7 @@ update_play_modes = (status) ->
 
 update_progressbar = (heartbeat) ->
   pg = $('#seekbar')
-
-  if heartbeat.perc < 0.0001
-    pg.addClass('progress-bar-striped')
-  else
-    pg.removeClass('progress-bar-striped')
+  pg.toggleClass('progress-bar-striped', heartbeat.perc < 0.00000001)
 
   pg.attr('aria-valuenow', heartbeat.perc)
   pg.css('width', heartbeat.perc + '%')
@@ -122,7 +163,7 @@ update_view_playing = (status) ->
     $('#view-playing-title').html(song.title or 'Not playing')
 
     if status['song-changed']
-      WEBSOCKET.send_metadata_request('cover', song)
+      BACKEND.send_metadata_request('cover', song)
     
       # Set the default no cover:
       setTimeout(->
@@ -132,9 +173,17 @@ update_view_playing = (status) ->
       500)
       
       # Order a new badge of songs to display:
-      WEBSOCKET.send_query(
+      BACKEND.send_query(
         "a:\"#{song.artist}\" b:\"#{song.album}\"", 'playing', false
       )
+
+  # Update the statistics table:
+  view = new PlaylistTable('#view-playing-stats', '')
+  view.add_row(['Number of songs', status['number-of-songs']])
+  view.add_row(['Number of artists', status['number-of-artists']])
+  view.add_row(['Number of albums', status['number-of-albums']])
+  view.add_row(['Kbit/s', status['kbit-rate']])
+  view.finish()
 
 update_view_playing_cover = (metadata) ->
   if metadata.results
@@ -144,9 +193,9 @@ update_view_playing_list = (playlist) ->
   view = new PlaylistTable(
     '#view-playing-list', 'align-left',
     (song) ->
-      WEBSOCKET.send_mpd("('play-id', #{song.id})")
+      BACKEND.send_mpd("('play-id', #{song.id})")
     (song) ->
-      WEBSOCKET.send_metadata_request('lyrics', song)
+      BACKEND.send_metadata_request('lyrics', song)
     header=false
   )
   for song, idx in playlist.songs
@@ -158,15 +207,32 @@ update_view_playing_list = (playlist) ->
 
   view.finish()
 
+update_view_queue = (status) ->
+  if status['list-needs-update'] or status['song-changed']
+    BACKEND.send_query(
+      $('#view-queue-search').val(),
+      'queue', queue_only=true
+    )
+
+update_view_database = (status) ->
+  $('#view-database-total-songs').html(
+    status['number-of-songs'] + ' total songs'
+  )
+
+  if status['list-needs-update']
+    BACKEND.send_query(
+      $('#view-database-search').val(),
+      'database', queue_only=false
+    )
 
 update_view_database_list = (playlist) ->
   view = new PlaylistTable(
     '#view-database-list',
     'plus',
     (song_uri) ->
-      WEBSOCKET.send_mpd("('queue-add', \"#{song_uri}\")")
+      BACKEND.send_mpd("('queue-add', \"#{song_uri}\")")
     (song_uri) ->
-      WEBSOCKET.send_mpd("('queue-add', \"#{song_uri}\")")
+      BACKEND.send_mpd("('queue-add', \"#{song_uri}\")")
   )
   view.add_header('#')
   view.add_header('Artist', 'left')
@@ -184,15 +250,14 @@ update_view_database_list = (playlist) ->
   $('#view-database-shown-songs').html(view.length() + ' shown songs')
   view.finish()
 
-
 update_view_queue_list = (playlist) ->
   view = new PlaylistTable(
     '#view-queue-list',
     'remove',
     (song_id) ->
-      WEBSOCKET.send_mpd("('play-id', #{song_id})")
+      BACKEND.send_mpd("('play-id', #{song_id})")
     (song_id) ->
-      WEBSOCKET.send_mpd("('queue-delete-id', #{song_id})")
+      BACKEND.send_mpd("('queue-delete-id', #{song_id})")
   )
 
   view.add_header('#')
@@ -223,7 +288,7 @@ update_view_playlists = (status) ->
       .append($('<span class="glyphicon glyphicon-remove">'))
 
     remove_button.click (event) ->
-      WEBSOCKET.send_mpd("('playlist-rm', '#{name}')")
+      BACKEND.send_mpd("('playlist-rm', '#{name}')")
       event.stopPropagation()
 
     button
@@ -234,12 +299,11 @@ update_view_playlists = (status) ->
     list.append(button)
 
     button.click ->
-      WEBSOCKET.send_mpd_simple("queue-clear")
-      WEBSOCKET.send_mpd("('playlist-load', '#{name}')")
+      BACKEND.send_mpd_simple("queue-clear")
+      BACKEND.send_mpd("('playlist-load', '#{name}')")
 
   if status.playlists.length == 0
     list.append($('<span class="text-muted">[No Playlists]</span>'))
-
 
 update_outputs_dialog = (outputs) ->
   output_list = $('#view-outputs-list')
@@ -270,22 +334,19 @@ update_outputs_dialog = (outputs) ->
     onColor: 'success',
     onSwitchChange: (event, state) ->
       name = $(this).prop('output-name')
-      WEBSOCKET.send_mpd("('output-switch', '#{name}', #{state})")
+      BACKEND.send_mpd("('output-switch', '#{name}', #{state})")
   })
 
 #####################
-#  WEBSOCKET STUFF  #
+#  BACKEND STUFF  #
 #####################
 
-class SnobaerSocket
+class MPDSocket
   constructor: (url) ->
-    @socket = new WebSocket url
+    @socket = new WebSocket(url)
     @socket.onopen = this.on_socket_open
     @socket.onclose = this.on_socket_close
     @socket.onmessage = this.on_socket_message
-
-    # Needed for autocompletion:
-    @completion_handler = null
 
   send: (msg) ->
     @socket.send(msg)
@@ -306,7 +367,7 @@ class SnobaerSocket
     }))
   
   send_metadata_request: (type, song) ->
-    WEBSOCKET.send(JSON.stringify({
+    BACKEND.send(JSON.stringify({
       'type': 'metadata',
       'detail': type,
       'artist': song.artist,
@@ -341,39 +402,20 @@ class SnobaerSocket
         update_progressbar_subtitle(status)
         update_play_buttons(status)
         update_view_playing(status)
+        update_view_database(status)
+        update_view_queue(status)
         update_view_playlists(status)
         update_outputs_dialog(data.outputs)
 
-        $('#view-database-total-songs').html(
-          status['number-of-songs'] + ' total songs'
-        )
-
         LAST_SONG_ID = status.song.id if status.song
-
-        if status['list-needs-update'] or status['song-changed']
-          WEBSOCKET.send_query(
-            $('#view-queue-search').val(),
-            'queue', queue_only=true
-          )
-
-        if status['list-needs-update']
-          WEBSOCKET.send_query(
-            $('#view-database-search').val(),
-            'database', queue_only=false
-          )
-
-        view = new PlaylistTable('#view-playing-stats', '')
-        view.add_row(['Number of songs', status['number-of-songs']])
-        view.add_row(['Number of artists', status['number-of-artists']])
-        view.add_row(['Number of albums', status['number-of-albums']])
-        view.add_row(['Kbit/s', status['kbit-rate']])
-        view.finish()
       when 'metadata'
         switch data.detail
           when 'cover'
             update_view_playing_cover(data)
           when 'lyrics'
-            $('#lyrics-box').html(data.results[0])
+            $('#lyrics-box').html(
+              data.results[0] or 'Sorry, no lyrics found.'
+            )
             show_modal('show-lyrics')
       when 'completion'
         if COMPLETION_HANDLER != null
@@ -401,7 +443,7 @@ class SnobaerSocket
       name: 'songs',
       async: true,
       source: (frag, _, async) ->
-        WEBSOCKET.send_completion_request(frag)
+        BACKEND.send_completion_request(frag)
         COMPLETION_HANDLER = (result) ->
           async([result])
     })
@@ -409,34 +451,6 @@ class SnobaerSocket
 #######################################################
 #  MAIN (or how main-y you can go with CoffeeScript)  #
 #######################################################
-
-connect_search = (textbox, button, callback) ->
-  textbox.keypress (ev) ->
-    if ev.keyCode == 13
-      callback(textbox.val())
-
-  button.click ->
-    callback(textbox.val())
-
-  textbox.on('input propertychange paste', ->
-    unless textbox.val()
-      callback('*')
-  )
-
-view_switch = (views, name) ->
-  class_name = '#view-' + name
-  for view in views
-    view_name = ('#view-' + view)
-    elem = $(view_name)
-    button = $('#switch-' + view + '-view')
-    if view_name == class_name
-      elem.show()
-      button.fadeTo(500, 1.0)
-      button.parent().addClass('active')
-    else
-      elem.hide()
-      button.fadeTo(500, 0.4)
-      button.parent().removeClass('active')
 
 $ ->
   views = ['database', 'playing', 'queue', 'playlists']
@@ -450,7 +464,7 @@ $ ->
       $('#switch-' + view + '-view').click -> view_switch(views, view)
 
   # Connect the event socket:
-  WEBSOCKET = new SnobaerSocket SERVER_URL
+  BACKEND = new MPDSocket find_weboscket_url()
 
   for [view, queue_only] in [['database', false], ['queue', true]]
     do (view, queue_only) ->
@@ -458,11 +472,10 @@ $ ->
         $('#view-'+view+'-search'),
         $('#view-'+view+'-exec'),
         (qry) ->
-          WEBSOCKET.send_query(qry, view, queue_only=queue_only)
+          BACKEND.send_query(qry, view, queue_only=queue_only)
       )
 
-    WEBSOCKET.connect_autocomplete($('#view-'+view+'-search'))
-
+    BACKEND.connect_autocomplete($('#view-'+view+'-search'))
 
   for entry in ['about', 'sysinfo', 'outputs']
     do (entry) ->
@@ -471,14 +484,14 @@ $ ->
         show_modal(entry)
 
   $('#view-database-rescan').click ->
-    WEBSOCKET.send_mpd('("database-rescan", "/")')
+    BACKEND.send_mpd('("database-rescan", "/")')
 
   $('#view-database-add-all').click ->
-    WEBSOCKET.send_mpd("('queue-add', '/')")
+    BACKEND.send_mpd("('queue-add', '/')")
 
   $('#view-database-add-visible').click ->
     query = $('#view-database-search').val()
-    WEBSOCKET.send_query(query, 'database', false, true)
+    BACKEND.send_query(query, 'database', false, true)
 
   $('#view-queue-clear').click ->
     show_modal('queue-clear')
@@ -487,20 +500,20 @@ $ ->
     show_modal('queue-save')
 
   $('#view-queue-apply-clear').click ->
-    WEBSOCKET.send_mpd_simple('queue-clear')
+    BACKEND.send_mpd_simple('queue-clear')
 
   $('#view-queue-apply-save').click ->
     playlist_name = $('#view-queue-save-input').val() or 'Last'
-    WEBSOCKET.send_mpd("('playlist-save', '#{playlist_name}')")
+    BACKEND.send_mpd("('playlist-save', '#{playlist_name}')")
   
   for action in ['previous', 'stop', 'pause', 'next']
     do (action) ->
       $('#btn-' + action).click ->
-        WEBSOCKET.send_mpd_simple(action)
+        BACKEND.send_mpd_simple(action)
 
   # Also connect the state toggling buttons:
   for action in ['random', 'repeat', 'consume', 'single']
     do (action) ->
       $('#btn-' + action).click ->
         is_active = $(this).hasClass('btn-info')
-        WEBSOCKET.send_mpd("('#{action}', #{not is_active})")
+        BACKEND.send_mpd("('#{action}', #{not is_active})")
