@@ -7,7 +7,7 @@ Initial author (dotted keys get/set):
 
 .. moduleauthor:: serztle <serztle@googlemail.com>
 
-Default mechanism, profile, changed signal:
+Default mechanism, profile, changed signal and all the rest:
 
 .. moduleauthor:: sahib <sahib@online.de>
 """
@@ -100,7 +100,9 @@ class Config(GObject.Object):
             _next = self._data
 
         if not isinstance(_next, collections.Mapping):
-            raise ValueError('{name} is not subscriptable (endpoint?)'.format(name=name))
+            raise ValueError('{name} is not subscriptable (endpoint?)'.format(
+                name=name
+            ))
 
         key, *leftover = name.split('.', maxsplit=1)
         if not leftover:
@@ -175,6 +177,7 @@ class Config(GObject.Object):
         return str(self._data)
 
 
+# Note: not yet used in Snøbær.
 class Profile:
     '''
     A profile is a subset of the config which may have different states.

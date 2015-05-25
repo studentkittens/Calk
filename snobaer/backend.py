@@ -8,7 +8,7 @@ import logging
 
 # Internal:
 from snobaer.fs import create_file_structure
-from snobaer.web import flask_app
+from snobaer.web import FLASK_APP
 from snobaer.mainloop import GLibIOLoop
 from snobaer.heartbeat import Heartbeat
 from snobaer.protocol import \
@@ -117,6 +117,7 @@ def create_client(cfg):
     client.props.timer_interval = 1.0
     client.timer_set_active(True)
 
+    # Now try to find the correct server:
     client.connect_to(cfg['mpd.host'], cfg['mpd.port'], 200)
 
     # Monkey patch some useful python side properties:
@@ -141,7 +142,7 @@ def run_backend(cfg):
 
     tornado_app = Application([
         (r"/ws", FrontedWSHandler, {'client': client}),
-        (r".*", FallbackHandler, dict(fallback=WSGIContainer(flask_app)))
+        (r".*", FallbackHandler, dict(fallback=WSGIContainer(FLASK_APP)))
     ])
 
     try:

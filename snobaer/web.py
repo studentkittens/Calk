@@ -2,28 +2,26 @@
 # encoding:utf8
 
 import os
-import time
-import pprint
 
 import uptime
 import psutil
 
-from flask import Flask, render_template, Response, send_from_directory, abort, url_for
-from flask_appconfig import AppConfig
+from flask import Flask, render_template, send_from_directory
 from flask_bootstrap import Bootstrap
 
 
-def create_app(configfile=None):
+def create_app():
     app = Flask(__name__, static_folder='static')
-    AppConfig(app, configfile)
     Bootstrap(app)
 
-    # in a real app, these should be configured through Flask-Appconfig
-    app.config['SECRET_KEY'] = 'devkey'
+    # Default key is "echo | md5sum":
+    app.config['SECRET_KEY'] = \
+        os.environ.get('SNOBAER_SECRET') or '68b329da9893e34099c7d8ad5cb9c940'
 
     return app
 
-flask_app = create_app()
+FLASK_APP = create_app()
+
 
 def get_sysinfo():
     stats = {}
@@ -35,7 +33,7 @@ def get_sysinfo():
     mem = psutil.virtual_memory()
     stats["mem_total"] = to_human_readable(mem.total)
     stats["mem_free"] = to_human_readable(mem.free)
-    stats["mem_used_perc"] = 100 - (100 / mem.total *  mem.free)
+    stats["mem_used_perc"] = 100 - (100 / mem.total * mem.free)
 
     swap = psutil.swap_memory()
     stats["swap_total"] = to_human_readable(swap.total)
@@ -48,7 +46,7 @@ def get_sysinfo():
         drive = {
             'dev': partition.device,
             'mountpoint': partition.mountpoint,
-            'usage_percent' : psutil.disk_usage(partition.mountpoint).percent
+            'usage_percent': psutil.disk_usage(partition.mountpoint).percent
         }
         stats["drives"].append(drive)
 
@@ -59,6 +57,7 @@ def get_sysinfo():
 
     return stats
 
+
 def to_human_readable(value):
     for unit in ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']:
         if value < 1024:
@@ -66,16 +65,17 @@ def to_human_readable(value):
         value /= 1024
     return "{:.2f} {}".format(value, unit)
 
-@flask_app.route('/')
+
+@FLASK_APP.route('/')
 def index():
     return render_template('index.html')
 
 
-@flask_app.route('/sysinfo')
+@FLASK_APP.route('/sysinfo')
 def sysinfo():
     return render_template('sysinfo.html', **get_sysinfo())
 
 
-@flask_app.route('/css/<path:name>')
+@FLASK_APP.route('/css/<path:name>')
 def deliver_css(name):
     return send_from_directory('static/css', name)

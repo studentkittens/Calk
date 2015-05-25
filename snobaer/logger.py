@@ -101,8 +101,8 @@ MOOSE_TO_PYTHON_LOGLEVEL = {
 }
 
 
-
 class InternalLogCatcher(GObject.Object):
+    """Routes libmoosecat's inernal log messages to python's logging module. """
     __gsignals__ = {
         'log-message': (
             GObject.SIGNAL_RUN_FIRST,

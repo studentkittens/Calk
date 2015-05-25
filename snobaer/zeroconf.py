@@ -39,17 +39,20 @@ def zeroconf_state_changed(browser):
 
 
 def print_servers():
+    """Search all registered MPD Servers in the network & log them to stdout.
+    Uses libmoosecat's ZeroconfBrowser() implementation.
+    """
     browser = Moose.ZeroconfBrowser()
     if browser.get_state() is not Moose.ZeroconfState.CONNECTED:
         logging.critical('No avahi running, eh?')
-        sys.exit(0)
+        return
 
     browser.timeout_id = None
     browser.connect('state-changed', zeroconf_state_changed)
 
     try:
         loop = GLib.MainLoop()
-        GLib.timeout_add(2 * 1000, loop.quit)
+        GLib.timeout_add(4 * 1000, loop.quit)
         loop.run()
     except KeyboardInterrupt:
         logging.warning('[Ctrl-C]')

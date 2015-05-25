@@ -1,45 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-"""Protocol definiton which is used between this backend and the frontend. This
-only describes the data which is exchanged on the websocket. We try to keep
-this as small as possible in order to reduce complexity in the frontend.
-
-The data format is json due to the easy parsing on client side.
-
-General Message format:
-
-    {
-        'type': (cmd|info)
-        'detail': [cmd]
-    }
-
-Client -> Server types:
-=======================
-
-mpd
----
-
-* [actual_command]   # See moose-mpd-client.c:1030 for [actual_command]
-* close              # Close the connection from client.
-
-store
------
-
-* query-queue [query]
-* query-database [query]
-* query-directories [depth] [query]
-* query-spl [name] [query]
-
-Server -> Client types:
-=======================
-
-* status            # include MooseStatus and MooseSong
-* outputs           # list of MooseOutputs
-* playlist          # json list of of MooseSongs with context id
-
-"""
-
 # Stdlib:
 import re
 import json
@@ -151,23 +112,22 @@ def _tag_string_to_enum(tag_string):
 def _parse_autocomplete_command(client, document, callback):
     full_query = document['detail']
     match = re.search('(.*?):(.*?)$', full_query)
-    print(match)
 
+    # TODO: This is painful to read and understand, make that a utilty func.
+    # or clean up elsewhise. Also conside using old moosecat code at:
+    # https://github.com/studentkittens/moosecat/blob/master/moosecat/gtk/completion.py
+    # (This regularly breaks in corner cases and not so corner-ish cases)
     if match is not None:
         query = match.group(2)
-        full_query = full_query[:-len(query)]
-        print('F', full_query, 'Q', query)
         if not query:
             return
+
+        full_query = full_query[:-len(query)]
         query.strip()
         tag = match.group(1)
-        print('M', tag)
         tag = Moose.Store.qp_tag_abbrev_to_full(tag + ':', len(tag)) or tag
-        print('A', tag)
         tag = tag.strip(':')
-        print('C', tag)
         tags = [_tag_string_to_enum(tag)]
-        print(tag, tags, query)
     else:
         # Use default tags and last component of string:
         query = full_query.split()[-1]
@@ -177,14 +137,16 @@ def _parse_autocomplete_command(client, document, callback):
             Moose.TagType.ALBUM_ARTIST, Moose.TagType.TITLE, Moose.TagType.GENRE
         ]
 
-    print('Q', full_query, query, tags)
     completion = client.store.get_completion()
     for tag in tags:
         if tag is None:
             continue
+
         guess = completion.lookup(tag, query)
         if guess:
-            print(tag, query, '->', guess)
+            LOGGER.debug('Guessing {} of {} -> {}'.format(
+                tag, query, guess
+            ))
             response = copy_header(document)
             response['result'] = full_query + guess
             callback(response)
@@ -193,8 +155,7 @@ def _parse_autocomplete_command(client, document, callback):
 def _parse_store_command(client, document, callback):
     # TODO: Moosecat supports asynchronous queries,
     #       so make this return a future.
-    detail = document['detail']
-    query = document['query']
+    detail, query = document['detail'], document['query']
     is_add_query = document['add-matches']
 
     if detail == 'queue':
@@ -206,16 +167,14 @@ def _parse_store_command(client, document, callback):
         return
 
     if not is_add_query:
-        song_list = []
+        song_list = [serialize_song(song) for song in playlist]
         response = copy_header(document)
         response['target'] = document.get('target')
         response['songs'] = song_list
 
-        for song in playlist:
-            song_list.append(serialize_song(song))
-
         callback(response)
     else:
+        # Add all songs that matched.
         with client.command_list():
             for song in playlist:
                 client.send("('queue-add', '{uri}')".format(uri=song.props.uri))
@@ -233,7 +192,8 @@ def _parse_metadata_command(client, document, callback):
         download=False
     )
 
-    def _done(_, q):
+    # Closure called once the item was received:
+    def done(_, q):
         response = copy_header(document)
         response['results'] = []
 
@@ -241,10 +201,14 @@ def _parse_metadata_command(client, document, callback):
             metadata = cache.props.data.get_data()
             response['results'].append(metadata.decode('utf-8'))
 
+        # Write it back to the client:
+        # (I guess tornado can do better?)
         callback(response)
-        client.metadata.disconnect_by_func(_done)
 
-    client.metadata.connect('query-done', _done)
+        # Make sure this closure is not calleed next time:
+        client.metadata.disconnect_by_func(done)
+
+    client.metadata.connect('query-done', done)
     LOGGER.debug('Commited metadata query: ' + str(document))
     client.metadata.commit(query)
 
@@ -275,20 +239,8 @@ def _parse_doc(client, document, callback):
 
 
 def parse_message(client, message, callback):
+    """Parse incoming client message."""
     try:
         return _parse_doc(client, json.loads(message), callback)
     except ValueError as err:
         LOGGER.error('Unable to parse json message:\n' + message + str(err))
-
-
-if __name__ == '__main__':
-    import time
-
-    client = Moose.Client.new(Moose.Protocol.DEFAULT)
-    client.connect_to()
-    client.force_sync(Moose.Idle(0xffffffff))
-    time.sleep(0.5)
-    client.wait()
-
-    with client.reffed_status() as status:
-        print(json.dumps(serialize_status(status), indent=4))

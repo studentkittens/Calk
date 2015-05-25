@@ -7,7 +7,7 @@
 We use GLib's Mainloop internally, so we just build an adapter
 that Tornado can understand.
 
-This code is based on this Gist and was updated to PyGObject:
+This code is based on this Gist and was updated to PyGObject + some bugfixes:
 
     https://gist.github.com/schlamar/8420193
 """
@@ -27,6 +27,10 @@ from gi.repository import GLib
 
 
 class GLibIOLoop(ioloop.IOLoop):
+    """Tornado compatible IOLoop that uses GLib's mainloop internally.
+    This should have okay speed and is required since libmoosecat depends
+    on the GLib Mainloop for delivering signals and emitting events.
+    """
     READ = GLib.IO_IN
     WRITE = GLib.IO_OUT
     ERROR = GLib.IO_ERR | GLib.IO_HUP
@@ -134,11 +138,12 @@ if __name__ == '__main__':
         return client
 
     c = create_client()
-    c.connect('client-event', lambda *_: print(c.ref_status().get_current_song()))
-
+    c.connect(
+        'client-event',
+        lambda *_: print(c.ref_status().get_current_song())
+    )
 
     GLib.timeout_add(1000, timeout_event)
-
     application.listen(8888)
 
     try:

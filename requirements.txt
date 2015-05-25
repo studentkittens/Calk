@@ -1,6 +1,5 @@
 flask            # Routing/Delivery
 flask-bootstrap  # bootstrap extension   
-flask-appconfig  # flask configuration handling
 flask-wtf        # input validation
 tornado          # Webserver/Websockets
 
@@ -12,5 +11,5 @@ pyaml            # needed for config.py
 PyGObject        # Needed for libmoosecat et. al
 docopt           # Commandline argument parsing
 
-uptime
-psutil
+uptime           # For sysinfo. 
+psutil           # For sysinfo.

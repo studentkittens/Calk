@@ -15,7 +15,7 @@ Usage:
 Options:
     -h --host=<addr>         Define the MPD to connect to [default: localhost]
     -p --port=<mpdport>      Define the MPD's port. [default: 6666]
-    -b --backend-port=<port> Define the backend's port [default: 8080]
+    -b --backend-port=<prt>  Define the backend's port [default: 8080]
     -l --list-servers        List all reachable MPD servers via Zeroconf.
 
 Misc Options:
