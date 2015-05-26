@@ -51,7 +51,7 @@ hochdeusch Schneebeeren, entschieden. Um parallel den Unicode--Support in der
 Welt zu verbessern und nördig zu wirken bedienten wir uns zudem der nordischen
 Sprache und übersetzten Schneebeere auf Norwegisch: Snøbær.
 
-# Grundlagen Music Player Daemon
+# Grundlagen: Music Player Daemon und seine Clients
 
 Um einen Musicplayer zu entwickeln eignet sich ein MPC besonders, da man nicht
 das Rad neu erfinden muss. Der MPD bringt bereits die meisten Funktionalitäten
@@ -93,20 +93,55 @@ gesteuert werden kann.
 
 # Aufbau von Snøbær
 
-* Screenshots
-* Fertiges Produkt
+Snøbær folgt generell den Konzepten von MPD. Es bietet verschiedene Ansichten
+die in der oberen Navigationsbar umgeschaltet werden können:
+
+## Ansichten:
+
+### *Now Playing* 
+
+* Screenshot
+
+### *Queue*
+
+* Screenshot
+
+### *Database*
+
+* Screenshot
+
+### *Playlists*
+
+* Screenshot
+
+### *Menu*
+
+* Screenshot
 
 # Architektur
+
 
 * Diagramme mit Onlinetool
 
 ## Frontend
+
+Das Frontend ist gänzlich in CoffeeScript geschrieben. Da wir vorher nur sehr
+wenig mit Webprogrammierung zu tun hatten, hatten wir keine direkten Präferenzen
+und entschieden uns für CoffeeScript aufgrund der einfachen, Python-ähnlichen
+Syntax. Zudem eilte der Sprache der Ruf voraus viele problematischen Aspekte von
+JavaScript hinter einer angenehmen Syntax zu verstecken. Als Beispiel wäre hier
+der *,,fat arrow''* von CoffeeScript zu nennen der im Hintergrund dafür sorgt
+dass eine Variable die an eine Closure gebunden wird den Wert zur Zeit der
+Bindung behält. In JavaScript wird dies etwas umständlich
 
 * Views
 * JS
 * Weitestgehend keinen eigenen Zustand/Spiegelt nur Zustand des Servers wieder
 
 ## Backend
+
+# Python Anteil
+
 
 * Python
 * C
@@ -123,6 +158,31 @@ Warum diese Bibiotheken?
 * Verwendete Tools
 * Tests
 * Inbetriebnahme (Docker)
+
+Da ``libmoosecat`` momentan nur mit Insiderwissen ordnungsgemäß kompiliert
+werden kann haben wir einen Docker--Container vorbereitet in dem das Backend
+bereits vorinstalliert ist. Aufgrund einiger unglücklicher Umstände ist die
+Größe des Containers auf 2GB gestiegen. Wir bitten dies zu entschuldigen.
+
+Der Container kann folgendermaßen in Betrieb genommen werden: 
+
+```bash
+$ docker pull sahib/snobaer
+$ docker run -p 6666:6666 -p 8080:8080 sahib/snobaer /bin/sh /start.sh
+```
+
+Sollte alles geklappt haben kann die Weboberfläche unter
+``http://localhost:8080`` aufgerufen werden. Im Container ist ebenfalls der
+MPD--Testserver enthalten, der mit einem gewöhnlichen MPD--Client ihrer Wahl
+gesteuert werden kann. Eine Änderung im einen Client sollte wie gesagt auch eine
+Änderung in Snøbær bewirken und umgekehrt.
+
+Da der Testserver immer die selbe leere Audiodatei abspielt (und noch zusätzlich
+der Audio-Output nicht aus dem Container geleitet wird) wird man beim Rumspielen
+mit Snøbær keinen Sound hören.
+
+Unter Umständen müssen nach dem Starten noch Songs aus der Datenbank zur Queue
+hinzugefügt werden bevor etwas abgespielt werden kann.
 
 # Fazit
 
