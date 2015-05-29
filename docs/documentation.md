@@ -217,38 +217,58 @@ zeigt es relativ stupide die Daten an, welche es empfängt.
 
 ## Websocket--Protokoll
 
+Die Kommunikation zwischen Frontend und Backend erfolgt über ein simple JSON
+Nachrichten. Diese Nachrichten haben als gemeinsamen Nenner folgenden Header:
+
+    {
+      'type': 'command-name',
+      'detail': 'subcommand'
+    }
+
+Wo nötig kommen noch weitere Felder dazu. Wir entschieden uns gegen eine
+umfangreichere Lösung wie JSONRpc (bzw. vergleichbare Lösungen) um weitere
+Abstraktion (und damit möglicherweise Performanceprobleme) sowie zusätzliche
+Abhängigkeiten zu vermeiden. In Retroperspektive wäre JSONRpc allerdings
+möglicherweise eine gute Ergänzung gewesen um ein gutes Stück unnötige
+Fehlerbehandlung im Backend zu vermeiden.
 
 ### Frontend to Backend Kommandos
 
-  send_mpd: (command) ->
-    @socket.send(JSON.stringify({
-      'type': 'mpd',
-      'detail': command
-    }))
+Das Frontend kann prinzipiell vier verschiedene Nachrichten an das Backend
+abschicken: 
 
-  send_completion_request: (query) ->
-    @socket.send(JSON.stringify({
-      'type': 'completion',
-      'detail': query
-    }))
+- MPD Kommandos: Alle MPD Steuerkommandos wie `next`, `pause` etc.
+- Completion Requests: Vervollständigung einer Suchanfrage.
+- Metadata Requests: Abfrage von Coverart, Lyrics oder prinzipiell auch anderen
+  Metadaten.
+- Store Abfragen: Abfrage der libmoosecat Datenbank mittels Volltextsuche.
+
+Beispiele für die Nachrichten: 
+
+mpd 
+
+    {'type': 'mpd', 'detail': command}
+
+completion
+
+    {'type': 'completion', 'detail': query}
   
-  send_metadata_request: (type, song) ->
-    BACKEND.send(JSON.stringify({
-      'type': 'metadata',
-      'detail': type,
-      'artist': song.artist,
-      'album': song.album,
-      'title': song.title
-    }))
+metadata:
 
-  send_query: (query, target, queue_only=true, add_matches=false) ->
-    @socket.send(JSON.stringify({
+    {
+      # type may be <cover>, <lyrics>, ... (See `glyrc -L` for a list)
+      'type': 'metadata', 'detail': type,
+      'artist': song.artist, 'album': song.album, 'title': song.title
+    }
+
+
+    {
       'type': 'store',
       'detail': if queue_only then 'queue' else 'database',
       'target': target,
       'query': query,
       'add-matches': add_matches
-    }))
+    }
 
 ### Backend to Frontend Kommandos
 
