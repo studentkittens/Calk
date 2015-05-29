@@ -140,6 +140,72 @@ Bindung behält. In JavaScript wird dies etwas umständlich
 
 ## Backend
 
+Das Backend besteht aus zwei Teilen. Zum einen der Kommunikationsteil der mit
+dem Frontend spricht und der ,,hintere'' Teil des Backends, welcher die
+Verbindung zum MPD betreut.
+
+Da Herr Pahl bereits als freies Nebenprojekt eine C--Bibliothek zur einfachen
+Kommunikation mit dem MPD geschrieben hat bot es sich an diese zu nutzen. Die
+meisten Client--Bibliotheken für den MPD (Beispiele: ``libmpdclient``,
+``python-mpd2``) implementieren nur das eigentliche Protokoll. Sie stellen also
+eine Bibliothek bereit um MPD--Clients zu schreiben, während ``libmoosecat``
+eine Bibliothek ist, die einen MPD--Client implementiert. Das hat den Vorteil
+die gesamte, doch recht komplizierte, Fehlerbehandlung und Kommunikation in
+einer gemeinsamen Code-Basis zu haben die definierte Schnittstellen nach außen
+bietet.
+
+``libmoosecat`` baut auf ``libmpdclient`` um folgende Features zu ermöglichen:
+
+- Konsistente API zu den wichtigsten MPD--Funktionen ohne sich mit dem
+  historisch gewachsenen Protokoll auseinander setzen zu müssen (TODO: link)
+- Synchrone und asynchrone Kommunikation mit dem Server.
+- SQLite Zwischenspeicher der Datenbank um Daten nur einmal im Speicher halten
+  zu müssen und um das erneute Starten zu beschleunigen.
+- Eine erweitere Syntax zum Abfragen der Ergebnisse (ermöglicht einfache
+  Volltextsuche).
+- Effiziente Autovervollständigung mittels Patricia-Tries.
+- Integration von ``libglyr`` (Eine weitere Bibliothek von Herrn Pahl TODO)
+- Zeroconf search: MPD Server können automatisch im Netz gefunden werden, ohne
+- In Arbeit: Gtk+-3.0 Integration um eine sehr schnelles Playlistwidget zum
+  Darstellen großer Datenbanken bereitzustellen, welches sich bereits beim
+  Eintippen der Suchanfrage aktualisiert.
+
+Für dieses Projekt musste allerdings noch ein Python--Wrapper realisiert werden
+um das in C geschrieben ``libmoosecat`` komfortabel von Python aus nutzen zu
+können. Vorher existierte bereits ein rudimentärer Cython--Wrapper, der
+allerdings viel Handarbeit und Fehlersuche benötigte. Daher begann Herr Pahl 
+``libmoosecat`` vor einiger Zeit auf ``GObject`` (TODO: Erklärung) Basis
+umzuschreiben. Das hat nicht nur den Vorteil, dass die Bibliothek jetzt
+konsistent Objekte nutzt, sondern diese Objekte können auch mittels
+,,Introspection'' von anderen Sprachen benutzt werden. Dazu bedarf es pro
+Sprache nur ein gemeinsames Modul welches zwischen ``GObject`` und der Sprache
+vermittelt. Bei Python ist dieses Modul ``pygobject``. Die eigentlichen Bindings
+zu ``libmoosecat`` können dann auf sehr einfache Art aus den C-Headerdateien
+generiert werden. Diese daraus gelesen Informationen (ein sogenanntes
+``gi-repository``)  können dann von ``pygobject`` gelesen werden. Diese
+Informationen umfassen beispielsweise welche Funktionen und Methoden exportiert
+werden sollen und wem der allokierte Speicher gehört bzw. ob der Aufrufer eine
+Referenz auf das Objekt hält (sowohl GObject als auch Python besitzen ein
+referenzzähler-basiertes Speichermodell).
+
+Auch viele andere ``GObject`` basierte Bibliotheken sind über diese
+Schnittstelle angebunden. Ein prominentes Beispiel ist ``Gtk+``.
+
+Ist ``libmoosecat`` installiert kann so von Python aus benutzt werden: 
+
+```python
+>>> from gi.repository import Moose
+>>> client = Moose.Client.new(Moose.Protocol.DEFAULT)
+>>> client.connect_to(port=6666)
+>>> client.send_simple('next')
+```
+
+Für diese Arbeit wurde die Portierung auf ``GObject``, welche durch andere
+Projekte unterbrochen wurde, vervollständigt und es wurden entsprechende
+Header--Kommentare hinzugefügt (TODO: Beispiellink). Zudem wurde ein sogenanntes
+``override``--Modul bereitgestellt, welches die API ,,Pythonic" macht und
+typische C--Konstrukte wie Output--Parameter versteckt.
+
 # Python Anteil
 
 
@@ -186,6 +252,55 @@ hinzugefügt werden bevor etwas abgespielt werden kann.
 
 # Fazit
 
-* Known Bugs
-* Erweiterungen
-* Abschliessendes Resume (Aufteilung in 3 Codebasen sinnvoll? Nein doch oh!)
+## Known Bugs
+    
+- Einige Memory leaks (hauptsächlich durch Python Wrapper bedingt, da
+  falsches refcounting). Momentan werden etwa 10kb bei einer Suchoperation
+  verloren da der Container mit den Songreferenzen nicht bereinigt wird.
+    
+  Lösung: Umfangreiches Leaktesting ()
+
+- Noch relativ langsam, da bei jedem Songwechsel die Queue refresht wird.
+  Für einen Prototypen sollte die Performance allerdings ausreichen.
+
+  Lösung: Updates der Queue nach Möglichkeit vermeiden. Beispielsweise beim
+  Songwechsel einfach einen anderen Song highlighten und die highlight
+  Klasse des alten Songs entfernen.
+
+- Sollte ein Song doppelt in der Queue doppelt vorhanden sein, wird er auch
+  doppelt gehighlighted falls er abgespielt wird.
+
+  Lösung: die zu highlightende row anhand der queue position bestimmten,
+  nicht der song id.
+
+- Gelegentliche crashes, ebenfalls durch reference counting verursacht.
+      
+## Mögliche Erweiterungen und Verschönerungen
+
+Liste der Erweiterungen fast länger als die restliche Arbeit.
+Moosecat und co. bieten prinzipiell weitaus mehr Features als im Frontend
+realisiert wurden.
+
+- Tests. 
+- Filterbare stored playlists.
+- Dateibrowser für die Datenbankansicht.
+- Support um zu mehreren MPD Servern zu connecten.
+  Momentan muss der MPD Server beim Starten des Backends angegeben werden. 
+  Stattdessen könnte man im Frontend erst eine Auswahlmaske zeigen und dann
+  jeweils einen Worker im Backend für einen bestimmtes Backend zu instanziieren.
+  Zudem wäre etwas Locking--Arbeit vonnöten um zwei separate Zugriffe auf den
+  gleichen MPD--Server zu erlauben (momentan eine gemeinsame sqlite datenbank)
+
+- Momentan gibt das backend nur den link zur coverart zurück, um auch
+  offline arbeiten zu können sollte es aber einen link in der art von
+  ``<Snøbær-host>/metadata/cover/<artist>/<title>`` zurückgeben. Bei einem
+  GET auf diesen Link holt der Flask Teil das Coverart aus dem Cache und
+  liefert es aus.
+
+## Abschliessendes Resume (Aufteilung in 3 Codebasen sinnvoll? Nein doch oh!)
+
+Snøbær war unser erster ,,richtiger'' Ausflug in die Webprogrammierung. Vorher
+hatten wir mit dem Web nur am Rande zu tun.
+Auch wenn wir den Eindruck hatten dass die Webprogrammierung oft leicht
+chaotisch und ,,hacky'' wirkt (häufiges CSS Gefrickel etc.) ließ sich in recht
+kurzer Zeit ein funktionierender Prototyp entwickeln.
