@@ -51,6 +51,10 @@ hochdeusch Schneebeeren, entschieden. Um parallel den Unicode--Support in der
 Welt zu verbessern und nördig zu wirken bedienten wir uns zudem der nordischen
 Sprache und übersetzten Schneebeere auf Norwegisch: Snøbær.
 
+![Logo von Snøbær](docs/pics/logo.png)
+
+Das Logo zeigt eine Schneebeere, es wurde mittels Inkscape für Snøbær erstellt.
+
 # Grundlagen: Music Player Daemon und seine Clients
 
 Um einen Musicplayer zu entwickeln eignet sich ein MPC besonders, da man nicht
@@ -60,7 +64,7 @@ Formate einlesen und auf viele Audiobackends ausgeben. Zudem ist er sehr robust
 und spielt auch zuverlässig bei hoher Systemlast noch Musik ab --- im Gegensatz
 zu Amarok wo die Systemlast durch das Abspielen erst generiert wird.
 
-TODO: MPD Architektur Bild.
+![MPD-Architecture Overview, Quelle: http://mpd.wikia.com/](docs/pics/mpd-overview.png)
 
 Die meisten MPD-Konzepte sind bereits aus anderen Musikplayern bekannt, werden
 aber hier noch kurz erwähnt:
@@ -82,7 +86,7 @@ widergespiegelt wird. Sollten mehrere  Zustände gewünscht sein, so kann man se
 MPD 0.19 zusätzlich Proxy--Server einrichten, die selbst als Clients des
 Haupt--,,Servers'' fungieren, aber einen eigenen Zustand besitzen:
 
-TODO: Grafik
+![MPD-Proxy Konzept](docs/pics/proxy.png)
 
 Dieses Prinzip wird beispielsweise in unserer Wohngemeinschaft genutzt um die
 Metadaten der Musiksammlung durch einen Hauptserver zu verwalten, der selbst
@@ -93,35 +97,98 @@ gesteuert werden kann.
 
 # Aufbau von Snøbær
 
-Snøbær folgt generell den Konzepten von MPD. Es bietet verschiedene Ansichten
-die in der oberen Navigationsbar umgeschaltet werden können:
+Snøbær folgt generell den Konzepten von MPD. Das Grundkonzept bedient sich zwei
+Navigationsbars welche fest in jeder Ansicht immer sichtbar sind. Die obere
+Navigationsleiste ermöglicht das Durchschalten der verschiedenen Ansichten
+(Views) und bietet Zugriff auf die Einstellungen (Settings).
+
+Die untere Navigationsleiste beheimatet die typischen previous, stop, play,
+pause und next--Buttons. In der Mitte dieser Leiste befindet sich ein
+Fortschrittsbalken mit Songinformation, welcher die Position des aktuell
+spielenden Liedes anzeigt. Rechts sind Steuerelemente für den Abspielmodus (in
+dieser Reihenfolge): 
+
+* Random: Folgelied wird zufällig aus Queue ausgewählt.
+* Repeat: Queue wird nach Abspielende wiederholt (Endlosschleife).
+* Consume: Nach dem Abspielen wird das Lied aus der Queue entfernt.
+* Single: Beendet Abspielen nach dem aktuellen Lied.
+
+Es bietet folgenden Ansichten:
 
 ## Ansichten:
 
 ### *Now Playing* 
 
-* Screenshot
+![Now Playing View](docs/pics/playing.png)
+
+Die Ansicht stellt die Standardansicht dar. Hier werden Informationen zum
+aktuell spielenden Lied und dem aktuellen Album angezeigt. Desweiteren sind
+unter dem Cover aktuelle Statistiken. Die Tracklist neben dem Cover zeigt alle
+weiteren Lieder auf dem selben Album. Das aktuell spielende Lied ist dabei
+bläulich hervorgehoben. Lieder die nicht in der Queue sind werden ausgegraut
+angezeigt.
+
+![Now Playing Ansicht mit Lyrics](docs/pics/lyrics.png)
+
+In der Ansicht ist die Lyrics-Funktionalität sichtbar. Drückt man auf einen
+,,gestreiften Button'' neben einem Lied in der Trackliste, so werden beim
+Backend die entsprechenden Lyrics abgefragt und im erfolgsfall in einem Modalen
+Dialog angezeigt. 
 
 ### *Queue*
 
-* Screenshot
+![Queue View](docs/pics/queue.png)
+
+Die Queue stellt eine Abspielliste dar. In dieser Liste befinden sich Lieder die
+aktuell angespielt werden sollen. Die Queue wird bei anderen Musikplayern oft
+als ,,Playlist'' bezeichnet. 
+
+Die Queue bietet die Möglichkeit der Volltextsuche. Zusätzlich kann die aktuelle
+Queue als als ,,stored playlist'' unter einem bestimmten Namen gespeichert
+werden. Daneben gibt es noch einen ,,Clear all''--Button, welcher die gesamte
+Queue leert.
+
+TODO: Sachen wie Autovervollständigung und spezielle Query syntax
 
 ### *Database*
 
-* Screenshot
+![Database View](docs/pics/database.png)
+
+Die Database View zeigt alle dem MPD bekannten Lieder an. Mittels der
+Suchfunktion kann die Datenbank gefiltert werden. Mittels des ,,add
+visible''--Buttons (Auge--Icon) kann die gefilterte Liste direkt in die Queue
+geladen werden. Mit dem ,,Plus''--Button können alle Lieder in die Queue zum
+Abspielen geladen werden. Der Button ganz rechts (,,Circle--Arrow'') bittet den
+MPD seine Datenbank, falls nötig, zu aktualisieren. Dies geschieht in der Regel
+nur wenn neue Lieder der Datenbank hinzugefügt wurden.
+
 
 ### *Playlists*
 
-* Screenshot
+![Playlist view](docs/pics/playlist.png)
 
-### *Menu*
+Diese sehr einfache Ansicht zeigt eine Liste von vorhandenen ,,stored
+playlists''. Jede Playlist wird dabei als Button dargestellt. Beim Drücken
+dieses wird die Playlist in die Queue geladen. Der ,,X''--Button bei jeder
+Playlist löscht diese.
 
-* Screenshot
+### *Modale Dialoge*
+
+![Modale Dialoge](docs/pics/modal_overview.png)
+
+Zur weiteren Übersicht zeigt der Screenshot die in Snøbær vorhandenen Modalen
+Dialoge. 
+
 
 # Architektur
 
+![Grobübersicht Architektur](docs/pics/architektur.png)
 
-* Diagramme mit Onlinetool
+Die Abbildung zeigt eine Grobübersicht der Architektur von Snøbær. Das
+Backend spaltet sich in die zwei Teile auf. Das MPD--Backend erledigt die
+Kommunikation mit dem MPD-Server, das Web--Backend implementiert das Protokoll
+zwischen Frontend und Backend. Zudem leitet es Nutzereingaben vom Frontend an
+das MPD--Backend weiter.
 
 ## Frontend
 
@@ -132,11 +199,71 @@ Syntax. Zudem eilte der Sprache der Ruf voraus viele problematischen Aspekte von
 JavaScript hinter einer angenehmen Syntax zu verstecken. Als Beispiel wäre hier
 der *,,fat arrow''* von CoffeeScript zu nennen der im Hintergrund dafür sorgt
 dass eine Variable die an eine Closure gebunden wird den Wert zur Zeit der
-Bindung behält. In JavaScript wird dies etwas umständlich
+Bindung behält. In JavaScript wird dies etwas umständlich. //TODO
+
+//TODO jQuery/Bootstrap und andere libs erklären
+
+### Der Ablauf
+
+Nachdem die Webseite vollständig per GET / ausgeliefert wurde, läuft der
+JavaScript--Tei los. Hierbei wird neben allgemeiner Initialisierungsarbeit ein
+Websocket zum Backend geöffnet. Beim Öffnen des Websockets wird automatisch ein
+initiales Status--Update vom Backend ans Frontend geschickt. Das Frontend hat im
+momentanen Prototypen weitestgehend keinen eigenen Zustand, das heißt, momentan
+zeigt es relativ stupide die Daten an, welche es empfängt.
 
 * Views
 * JS
-* Weitestgehend keinen eigenen Zustand/Spiegelt nur Zustand des Servers wieder
+
+## Websocket--Protokoll
+
+
+### Frontend to Backend Kommandos
+
+  send_mpd: (command) ->
+    @socket.send(JSON.stringify({
+      'type': 'mpd',
+      'detail': command
+    }))
+
+  send_completion_request: (query) ->
+    @socket.send(JSON.stringify({
+      'type': 'completion',
+      'detail': query
+    }))
+  
+  send_metadata_request: (type, song) ->
+    BACKEND.send(JSON.stringify({
+      'type': 'metadata',
+      'detail': type,
+      'artist': song.artist,
+      'album': song.album,
+      'title': song.title
+    }))
+
+  send_query: (query, target, queue_only=true, add_matches=false) ->
+    @socket.send(JSON.stringify({
+      'type': 'store',
+      'detail': if queue_only then 'queue' else 'database',
+      'target': target,
+      'query': query,
+      'add-matches': add_matches
+    }))
+
+### Backend to Frontend Kommandos
+
+* Heartbeat
+* Status 
+
+    * events
+    * list-needs-update
+    * state
+    * song (current)
+    * playlists
+    * outputs
+
+* Completion Answer
+* Playlist
 
 ## Backend
 
