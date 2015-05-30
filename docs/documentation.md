@@ -223,10 +223,13 @@ zeigt es relativ stupide die Daten an, welche es empfängt.
 Die Kommunikation zwischen Frontend und Backend erfolgt über ein simple JSON
 Nachrichten. Diese Nachrichten haben als gemeinsamen Nenner folgenden Header:
 
+
+```coffee
     {
       'type': 'command-name',
       'detail': 'subcommand'
     }
+```
 
 Wo nötig kommen noch weitere Felder dazu. Wir entschieden uns gegen eine
 umfangreichere Lösung wie JSONRpc (bzw. vergleichbare Lösungen) um weitere
@@ -248,45 +251,101 @@ abschicken:
 
 Beispiele für die Nachrichten: 
 
-mpd 
+**MPD:**
 
-    {'type': 'mpd', 'detail': command}
+```coffee
+# `command` is a libmoosecat client command.
+# Examples "('next', )" or "('play-id', 42)"
+# More information here:
+#   https://github.com/studentkittens/moosecat/blob/master/lib/mpd/moose-mpd-client.c#L1033
+{'type': 'mpd', 'detail': command}
+```
+    
 
-completion
+**Completion:**
 
-    {'type': 'completion', 'detail': query}
-  
-metadata:
+```coffee
+# `query` is a user given query. 
+# Example: `t:Nich` should be completed to `t:Nichtimgriff`
+{'type': 'completion', 'detail': query}
+```
 
-    {
-      # type may be <cover>, <lyrics>, ... (See `glyrc -L` for a list)
-      'type': 'metadata', 'detail': type,
-      'artist': song.artist, 'album': song.album, 'title': song.title
-    }
+**Metadata:**
 
+```coffee
+{
+    # type may be <cover>, <lyrics>, ... (See `glyrc -L` for a list)
+    'type': 'metadata', 'detail': type,
+    'artist': song.artist, 'album': song.album, 'title': song.title
+}
+```
 
-    {
-      'type': 'store',
-      'detail': if queue_only then 'queue' else 'database',
-      'target': target,
-      'query': query,
-      'add-matches': add_matches
-    }
+**Store:**
+
+```coffee
+{
+    # `queue-only`: 
+    # `detail`: Which resource to query.
+    # `target`: Copied to the response by the backend.
+    # `query`: The query.
+    # `add-matches`: If true, do not respond, but add 
+    #                those songs directly to the queue.
+    'type': 'store',
+    'detail': if queue_only then 'queue' else 'database',
+    'target': target,
+    'query': query,
+    'add-matches': add_matches
+}
+```
 
 ### Backend to Frontend Kommandos
 
 * Heartbeat
+
+    Zeitansage.
+
 * Status 
 
-    * events
-    * list-needs-update
+    * Events
     * state
     * song (current)
     * playlists
     * outputs
+    * list-needs-update
 
 * Completion Answer
+
+    
+
 * Playlist
+
+```coffee
+{
+    'type': 'store',
+    'detail': 'database',
+    'target': 'playing-view',
+    'songs': [{
+        'artist': 'Udo Jürgens',
+        'album': 'Aber bitte mit Sahne 1+2',
+        'title': 'Aber bitte mit CoffeeScript',
+        'genre': 'Schlager',
+        'id', 42,
+        'uri' 'file://Udo/BestOf/song1.mp3'
+    }, {
+        # ...
+    }]
+}
+```
+
+* Metadata 
+
+```coffee
+{
+    'type': 'metadata',
+    'detail': type,
+    'results': ['text_or_imagelink_2', 'text_or_imagelink_2']
+}
+```
 
 ## Backend
 

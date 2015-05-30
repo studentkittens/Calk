@@ -31,6 +31,7 @@ find_weboscket_url = ->
   # Misuse a <a> tag as url parser:
   parser = document.createElement('a')
   parser.href = window.location
+  console.log(parser.host)
   return 'ws://' + parser.host + '/ws'
 
 # Make entry/go-button usable via search.
