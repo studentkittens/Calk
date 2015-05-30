@@ -2,6 +2,7 @@
 documentclass: scrartcl
 title: Der Webmpd-Client Snøbær
 author: Christopher Pahl und Christoph Piechula
+fontsize: 11pt
 lang: german
 sections: yes
 toc: yes
@@ -110,22 +111,24 @@ gesteuert werden kann.
 Snøbær folgt generell den Konzepten von MPD. Das Grundkonzept bedient sich zwei
 Navigationsbars welche fest in jeder Ansicht immer sichtbar sind. Die obere
 Navigationsleiste ermöglicht das Durchschalten der verschiedenen Ansichten
-(Views) und bietet Zugriff auf die Einstellungen (Settings).
+(Views) und bietet Zugriff auf die Einstellungen (Settings). Die einzelnen
+Ansichten sind einzelne `<div>`--Elemente von denen jeweils nur eins sichtbar
+ist.
 
-Die untere Navigationsleiste beheimatet die typischen previous, stop, play,
-pause und next--Buttons. In der Mitte dieser Leiste befindet sich ein
+Die untere Navigationsleiste beheimatet die typischen `previous`, `stop`, `play`,
+`pause` und `next`--Buttons. In der Mitte dieser Leiste befindet sich ein
 Fortschrittsbalken mit Songinformation, welcher die Position des aktuell
 spielenden Liedes anzeigt. Rechts sind Steuerelemente für den Abspielmodus (in
 dieser Reihenfolge): 
 
-* Random: Folgelied wird zufällig aus Queue ausgewählt.
-* Repeat: Queue wird nach Abspielende wiederholt (Endlosschleife).
-* Consume: Nach dem Abspielen wird das Lied aus der Queue entfernt.
-* Single: Beendet Abspielen nach dem aktuellen Lied.
-
-Es bietet folgenden Ansichten:
+* *Random*: Folgelied wird zufällig aus Queue ausgewählt.
+* *Repeat*: Queue wird nach Abspielende wiederholt (Endlosschleife).
+* *Consume*: Nach dem Abspielen wird das Lied aus der Queue entfernt.
+* *Single*: Beendet Abspielen nach dem aktuellen Lied.
 
 ## Ansichten:
+
+Es bietet folgenden Ansichten:
 
 ### *Now Playing* 
 
@@ -164,8 +167,11 @@ indem ein Completion--Request an das Backend gesendet wird. Falls eine
 Vervollständigung möglich ist antwortet dieser mit der vervollständigten
 Suchanfrage.
 
-TODO: Sachen wie Autovervollständigung und spezielle
-Query syntax
+Über die erweiterte Suchsyntax (TODO: ref) ist es möglich nur bestimmte
+Attribute wie Titel, Genre, Artist oder Releasedate zu vervollständigen. So kann
+man einfach ,,t:Nich'' eintippen und erhält als Vervollständigung
+,,t:Nichtimgriff'' von Farin Urlaub.
+
 
 ### *Database*
 
@@ -209,6 +215,8 @@ das MPD--Backend weiter.
 
 ## Frontend
 
+### Libraries
+
 Das Frontend ist gänzlich in CoffeeScript geschrieben. Da wir vorher nur sehr
 wenig mit Webprogrammierung zu tun hatten, hatten wir keine direkten Präferenzen
 und entschieden uns für CoffeeScript aufgrund der einfachen, Python-ähnlichen
@@ -216,37 +224,96 @@ Syntax. Zudem eilte der Sprache der Ruf voraus viele problematische Aspekte von
 JavaScript hinter einer angenehmen Syntax zu verstecken. Als Beispiel wäre hier
 der *,,fat arrow''* von CoffeeScript zu nennen der im Hintergrund dafür sorgt
 dass eine Variable die an eine Closure gebunden wird den Wert zur Zeit der
-Bindung behält. In JavaScript wird dies etwas umständlich. //TODO ->>>>
+Bindung behält. In JavaScript ist dies oft umständlich und benötigt stets
+Boilerplate--Code.
 
-Für das Frontend wurde das Bootstrap CSS Framework mit jQuery verwendet. JQuery
-ist eine JavaScript--Bibliothek welche alle unangenehmen
-DOM--Manipulation--Tasks kapselt. 
+Für das Frontend wurde das Bootstrap CSS Framework mit jQuery verwendet.
+Bootstrap erachten wir für unser Projekt als sinnvoll, da es viele Widgets und
+Utility--CSS Regeln mit sich bringt,  die man sonst mühevoll per Hand selbst
+designen müsste. Besonders die Möglichkeit von Bootstrap ,,Responsive Designs''
+zu erstellen ist für unser Projekt wichtig, da die Zielplattform hier ein PC,
+Tablet oder auch ein Smartphone sein könnte. 
 
-//TODO jQuery/Bootstrap und andere libs erklären
+Sollte das Display keine ausreichende Größe besitzen skaliert Snøbær (bzw.
+Bootstrap) die Anwendung entsprechend. Die unteren Navigationsbarelemente werden
+auch entsprechend neu geordnet, siehe dazu Abbildung @fig:small_screenshot.
 
-### Der Ablauf
+![Snøbær auf mobilen Geräten](docs/pics/screenshot_small.png) {#fig:small_screenshot}
+
+JQuery ist eine Abhängigkeit von Bootstrap, bietet aber für unsere Zwecke auch
+gewisse Vorteile. So bietet es angenehmere Möglichkeiten zur DOM--Manipulation
+und ermöglicht es einige ,,unschönen'' Seiten von JavaScript zu umgehen. 
+
+Der Optik wegen wird statt des normalen Bootstrap--CSS das *,,Readable''*--Theme
+von *Bootswatch* [^bootswatch_readable] eingesetzt.
+
+[^bootswatch_readable]: `bootswatch-readable`: \url{https://bootswatch.com/readable/}
+
+### Logik und Ablauf
 
 Nachdem die Webseite vollständig per GET / ausgeliefert wurde, läuft der
-JavaScript--Tei los. Hierbei wird neben allgemeiner Initialisierungsarbeit ein
+JavaScript--Teil los. Hierbei wird neben allgemeiner Initialisierungsarbeit ein
 Websocket zum Backend geöffnet. Beim Öffnen des Websockets wird automatisch ein
 initiales Status--Update vom Backend ans Frontend geschickt. Das Frontend hat im
 momentanen Prototypen weitestgehend keinen eigenen Zustand, das heißt, momentan
 zeigt es relativ stupide die Daten an, welche es empfängt.
 
-* Views
-* JS
+Ein großer Teil der Funktionalität steckt in der Klasse `MPDSocket`. Diese
+erledigt das Verbinden zum Backend und das Entgegennehmen und Versenden von
+Nachrichten. Die meiste Update--Logik ist an das Empfangen einer
+Status--Nachricht gebunden. Diese wird initial beim Öffnen der Verbindung und
+bei jeder Statusänderung des MPD vom Backend geschickt. Ereignisse die
+Statusupdates bedingen sind beispielsweise: Das Weiterschalten des aktuellen
+Liedes, das Ändern der Lautstärke (momentan noch nicht in Snøbær integriert)
+oder das Verändern der Queue. Eine vollständige Liste dieser Events findet sich
+in der MPD--Dokumentation[^mpddoc_eventspage]. 
+
+[^mpddoc_eventspage]: MPD Eventliste bei `idle`: \url{http://www.musicpd.org/doc/protocol/command_reference.html}
+
+Jedes Statusupdate aktualisiert die respektiven Widgets in allen Ansichten. Das
+Aktualisieren kann unter Umständen weitere Nachrichten nach sich ziehen. So wird
+nach dem Ändern des aktuellen Liedes eine Anfrage über ein Cover an das Backend
+geschickt. (`BACKEND` ist die Instanz von `MPDSocket`).
+
+```coffee
+    if status['song-changed']
+      BACKEND.send_metadata_request('cover', song)
+```
+
+Nach einiger Zeit führt dies zu einer `metadata` Nachricht, die wiederum eine
+Änderung bestimmter Widgets verursacht. Die einzelnen Nachrichten die
+ausgetauscht werden sind im nächsten Kapitel noch näher erklärt.
+
+Die `Queue`, `Database` und `Playing` Ansicht nutzen beide die `PlaylistTable`--Klasse zur
+Darstellung der Daten. Diese kapselt die gemeinsame Darstellung von Songs in
+einer HTML--Table die dynamisch generiert wird. Zudem bietet sie Möglichkeiten
+um die Clicks auf eine Row, bzw. das dazugehörige Icon, abzufangen und
+weiterzureichen. 
+
+Der Rest der Frontendlogik [^coffeescript_github] besteht aus relativ einfach nachvollziehbaren Update-
+und Utilityfunktionen die hier nicht näher erklärt werden.
+
+[^coffeescript_github]: CoffeeScript Source: \url{https://github.com/studentkittens/snobaer/blob/master/snobaer/static/js/logic.coffee}
 
 ## Websocket--Protokoll
 
-Die Kommunikation zwischen Frontend und Backend erfolgt über ein simple JSON
+Die Kommunikation über Websockets als Standard wurde gewählt weil, sich
+hierdurch für unseren Einsatzzweck einige Vorteile gegenüber reinem HTTP
+ergeben. Um beispielsweise die Liedposition auf dem Client ,,live'' darzustellen
+müsste man bei HTTP permanent GET--Anfragen an den Server schicken. Websockets
+hingegen bleiben permanent aktiv und ermöglichen eine direkte Kommunikation
+zwischen Client und Server. Ein weiterer Vorteil ist, dass auch
+Push--Notifications möglich sind und somit auf Polling verzichtet werden kann.
+
+Die Kommunikation zwischen Frontend und Backend erfolgt über simple JSON
 Nachrichten. Diese Nachrichten haben als gemeinsamen Nenner folgenden Header:
 
 
 ```coffee
-    {
-      'type': 'command-name',
-      'detail': 'subcommand'
-    }
+{
+  'type': 'command-name',
+  'detail': 'subcommand'
+}
 ```
 
 Wo nötig kommen noch weitere Felder dazu. Wir entschieden uns gegen eine
@@ -256,113 +323,177 @@ Abhängigkeiten zu vermeiden. In Retrospektive wäre JSON--RPC allerdings
 möglicherweise eine gute Ergänzung gewesen um ein gutes Stück unnötige
 Fehlerbehandlung im Backend zu vermeiden.
 
-### Frontend to Backend Kommandos
+### Frontend → Backend
 
 Das Frontend kann prinzipiell vier verschiedene Nachrichten an das Backend
-abschicken: 
+abschicken. Diese Nachrichtentypen sind im Einzelnen:
 
-- MPD Kommandos: Alle MPD Steuerkommandos wie `next`, `pause` etc.
-- Completion Requests: Vervollständigung einer Suchanfrage.
-- Metadata Requests: Abfrage von Coverart, Lyrics oder prinzipiell auch anderen
-  Metadaten.
-- Store Abfragen: Abfrage der libmoosecat Datenbank mittels Volltextsuche.
-
-Beispiele für die Nachrichten: 
-
-**MPD:**
+* **MPD:** Alle MPD Steuerkommandos wie `next`, `pause` etc.
 
 ```coffee
-# `command` is a libmoosecat client command.
-# Examples "('next', )" or "('play-id', 42)"
-# More information here:
-#   https://github.com/studentkittens/moosecat/blob/master/lib/mpd/moose-mpd-client.c#L1033
-{'type': 'mpd', 'detail': command}
+    # `command` is a libmoosecat client command.
+    # Examples "('next', )" or "('play-id', 42)"
+    # More information here: http://tinyurl.com/p5w3ljl
+    {'type': 'mpd', 'detail': command}
 ```
     
 
-**Completion:**
+* **Completion:** Vervollständigung einer Suchanfrage.
 
 ```coffee
-# `query` is a user given query. 
-# Example: `t:Nich` should be completed to `t:Nichtimgriff`
-{'type': 'completion', 'detail': query}
+    # `query` is a user given query. 
+    # Example: `t:Nich` should be completed to `t:Nichtimgriff`
+    {'type': 'completion', 'detail': query}
 ```
 
-**Metadata:**
+* **Metadata:** Abfrage von Coverart, Lyrics oder prinzipiell auch anderen Metadaten.
 
 ```coffee
-{
-    # type may be <cover>, <lyrics>, ... (See `glyrc -L` for a list)
-    'type': 'metadata', 'detail': type,
-    'artist': song.artist, 'album': song.album, 'title': song.title
-}
+    {
+        # type may be <cover>, <lyrics>, ... (See `glyrc -L` for a list)
+        'type': 'metadata', 'detail': type,
+        'artist': song.artist, 'album': song.album, 'title': song.title
+    }
 ```
 
-**Store:**
+* **Store:** Abfrage der `libmoosecat` Datenbank mittels Volltextsuche.
 
 ```coffee
-{
-    # `queue-only`: 
-    # `detail`: Which resource to query.
-    # `target`: Copied to the response by the backend.
-    # `query`: The query.
-    # `add-matches`: If true, do not respond, but add 
-    #                those songs directly to the queue.
-    'type': 'store',
-    'detail': if queue_only then 'queue' else 'database',
-    'target': target,
-    'query': query,
-    'add-matches': add_matches
-}
+    {
+        # `queue-only`: 
+        # `detail`: Which resource to query.
+        # `target`: Copied to the response by the backend.
+        # `query`: The query.
+        # `add-matches`: If true, do not respond, but add 
+        #                those songs directly to the queue.
+        'type': 'store',
+        'detail': if queue_only then 'queue' else 'database',
+        'target': target,
+        'query': query,
+        'add-matches': add_matches
+    }
 ```
 
-### Backend to Frontend Kommandos
+### Backend → Frontend
 
-* Heartbeat
+Das Backend kann prinzipiell vier verschiedene Nachrichten an das Frontend
+abschicken. Diese Nachrichtentypen sind im Einzelnen:
 
-    Zeitansage.
-
-* Status 
-
-    * Events
-    * state
-    * song (current)
-    * playlists
-    * outputs
-    * list-needs-update
-
-* Completion Answer
-
-    
-
-* Playlist
+* Heartbeat: Zeitansage für das Frontend. Gibt an wieviel Zeit im aktuellen Lied
+  vergangen ist.
 
 ```coffee
-{
-    'type': 'store',
-    'detail': 'database',
-    'target': 'playing-view',
-    'songs': [{
-        'artist': 'Udo Jürgens',
-        'album': 'Aber bitte mit Sahne 1+2',
-        'title': 'Aber bitte mit CoffeeScript',
-        'genre': 'Schlager',
-        'id', 42,
-        'uri' 'file://Udo/BestOf/song1.mp3'
-    }, {
-        # ...
-    }]
-}
+    {
+        'type': 'hb',
+        'perc': 66,
+        'repr': '1:06/1:40'
+    }
 ```
 
-* Metadata 
+  Diese Nachricht wird (momentan) alle 500ms gesendet. Zwar könnte das Frontend
+  diese Zeitinformationen selbst interpolieren, doch stellte sich in der Praxis
+  dabei raus, dass sich immer eine gewisser *,,Lag''* in die Berechnung mit
+  einschlich. Daher wurde mit ``Heartbeat`` eine Python--Klasse implementiert, die
+  auf Anfrage die vergangene Zeit recht genau abschätzt[^snobaer_heartbeat]. 
+
+  [^snobaer_heartbeat]: `heartbeat.py`: \url{https://github.com/studentkittens/snobaer/blob/master/snobaer/heartbeat.py}
+
+* **Status**:  Allgemeine Statusinformationen zu allen MPD Funktionen. Diese Nachricht ist relativ umfangreich, umfasst aber alle Informationen die das
+  Frontend (in Zukunft) benötigt. Um Bandbreite zu sparen wird die Statusnachricht nur
+  ausgelöst wenn ein MPD--Event passiert ist.
 
 ```coffee
-{
-    'type': 'metadata',
-    'detail': type,
-    'results': ['text_or_imagelink_2', 'text_or_imagelink_2']
-}
+    {
+      "type" : "status",
+      "status" : {
+        # Playing state: paused, playing, stopped.
+        "state" : "playing",
+        # Id of a song is unique, pos is the song's index in the queue.
+        "song-id" : 328, "song-pos" : 109,
+        "next-song-id" : -1, "next-song-pos" : -1,
+        # Did the song changed compared to last status?
+        "song-changed" : true, 
+        # Does the queue/database need an update?
+        "list-needs-update" : false,
+        # Events that happened:
+        "events" : [
+          "player"
+        ],
+        # Current song:
+        "song" : {
+          "artist" : "In Extremo", "album" : "7", "title" : "Erdbeermund",
+          "genre" : " Medieval Rock",
+          "id" : 328, "uri" : "In_Extremo_7_Erdbeermund.ogg"
+        },
+        # List of playlist names:
+        "playlists" : [
+          "test1", "test2", "Neu"
+        ],
+        # Current song information:
+        "total-time" : 122, "queue-length" : 110,
+        "kbit-rate" : 0, "elapsed-ms" : 33, "crossfade" : 0, "volume" : -1,
+        # Statistics:
+        "number-of-artists" : 7, "number-of-albums" : 8, "number-of-songs" : 109,
+        "db-update-time" : 1432976371, "uptime" : 156, "update-id" : 0,
+        # Playback settings:
+        "random" : false, "single" : false, "consume" : false, "repeat" : false,
+        "mixrampdb" : 0, "mixrampdelay" : -1, "replay-gain-mode" : "",
+        # Audio information:
+        "audio-sample-rate" : 44100, "audio-bits" : 0, "audio-channels" : 0,
+      },
+      # Table of output names and if they're enabled:
+      "outputs" : {
+          "alsa": true
+      }
+    }
+```
+
+* **Completion Answer:** Antwort auf ein Completion Request (falls erfolgreich).
+  Falls nicht erfolgreich, wird die Anfrage nicht beantwortet um Bandbreite zu
+  sparen. Die Antwort entspricht dem Request, nur mit zusätzlichen ``'result'``
+  Feld.
+
+```coffee
+    {
+        'type': 'completion', 'detail': query, 'result': query + completion
+    }
+```
+
+* **Playlist:** Liste aus Songs. Diese Antwort ist die Rückgabe der
+  ``store``--Anfragen. Nicht alle möglichen und vorhandenen Song--Metadaten (wie
+  Musicbrainz--ID etc.) werden mitgeliefert um Bandbreite bei großen Playlisten
+  zu sparen.
+
+```coffee
+    {
+        'type': 'store',
+        'detail': 'database',
+        'target': 'playing-view',
+        'songs': [{
+            'artist': 'Udo Jürgens',
+            'album': 'Aber bitte mit Sahne 1+2',
+            'title': 'Aber bitte mit CoffeeScript',
+            'genre': 'Schlager',
+            'id', 42,
+            'uri' 'file://Udo/BestOf/song1.mp3'
+        }, {
+            # ...
+        }]
+    }
+```
+
+* **Metadata:** Antwort auf ein Metadata-Request. Bei Songtexten werden Texte in
+  der ``results``--Liste mitgeliefert, bei Coverart werden die Links zu den
+  Bildern mitgeliefert. Eine Verbesserung wäre hier einen lokalen Link
+  zurückgeben, damit Snøbær auch ohne Internetzugang Coverart anzeigen kann ---
+  sofern das Cover bereits gecached wurde.
+
+```coffee
+    {
+        'type': 'metadata',
+        'detail': type,
+        'results': ['text_or_imagelink_2', 'text_or_imagelink_2']
+    }
 ```
 
 ## Backend
@@ -371,17 +502,71 @@ Das Backend besteht aus zwei Teilen. Zum einen der Kommunikationsteil der mit
 dem Frontend spricht und der ,,hintere'' Teil des Backends, welcher die
 Verbindung zum MPD betreut.
 
+### Web--Backend
+
+TODO: pip requirements.
+
+Das Kernstück zur Kommunikation bildet `Tornado`, der asynchrone Python
+Webserver. Dieser eignet sich für unsere Zwecke vor allem aufgrund der
+Python3--Kompatibilität und seiner relativ hohen Performance. 
+
+`Flask` wird aufgrund seiner Modularität und Erweiterbarkeit als allgemeines
+Web--Framework verwendet. Damit `Tornado` (asynchron) und `Flask` (synchron)
+zusammenarbeiten können, bietet `Tornado` einen WSGI--Container um alle Anfragen
+die nicht direkt von `Tornado` bearbeitet worden an `Flask` weiterzuleiten.
+Konkret behandelt `Tornado` bei uns nur alle Websocketanfragen, alle anderen
+Anfragen werden über WSGI direkt an `Flask` weitergeleitet. 
+
+Als problematisch stellte sich noch die Existenz zweier verschiedener Mainloops
+heraus. `libmoosecat` nutzt den weit verbreiteten GLib--Mainloop (TODO: Link)
+während Tornado einen eigenen Mainloop nutzt. Letzterer bietet zwar eine
+Integration für viele andere Mainloops--Implementationen, GLib ist aber nicht
+dabei. Daher wurde nach kurzer Suche der Code unter
+TODO https://gist.github.com/schlamar/8420193 unseren Zwecken angepasst. Er wurde zu
+PyGObject portiert und ein paar kleinere Bugfixes wurden eingebracht.
+Dieser Mainloop ist ein Adapter der kompatibel zur `Tornado`--IOLoop API, nutzt
+aber intern den `GLIb`--Mainloop.
+
+**Sourcecode--Layout:**
+
+```bash
+    snobaer
+    +-- templates        # Jinja2 templates.
+    |   +-- index.html   # Main player page.
+    |   \-- sysinfo.html # Sysinfo modal dialog.
+    +-- static           # Static content.
+    |   +-- css          # css files (symlink to bower package files).
+    |   +-- fonts        # fonts (glyphicons for bootstrap).
+    |   \-- js           # js files (logic.coffee + symlinks to bower files).
+    +-- config.py        # General purpose YAML-Config.
+    +-- protocol.py      # Frontend<->Backend protocol.
+    +-- heartbeat.py     # Heartbeat (Time interpolation).
+    +-- backend.py       # Tornadoserver and intitialization.
+    +-- mainloop.py      # Tornado-compatible GLib mainloop.
+    +-- logger.py        # Colorful logging with nice unicode symbols.
+    +-- metadata.py      # Metadata retrieval helpers.
+    +-- web.py           # All Flask related code.
+    +-- zeroconf.py      # Discovery code for MPD servers on the network.
+    +-- fs.py            # Utilities for creating .config/.cache dirs.
+    +-- __main__.py      # Main methods and commandline parsing.
+    \__ __init__.py      # It's a package.
+```
+
+### MPD--backend
+
+TODO: Suchsyntax behandeln und MPD Commands.
+
 Da Herr Pahl bereits als freies Nebenprojekt eine C--Bibliothek zur einfachen
 Kommunikation mit dem MPD geschrieben hat bot es sich an diese zu nutzen. Die
 meisten Client--Bibliotheken für den MPD (Beispiele: ``libmpdclient``,
 ``python-mpd2``) implementieren nur das eigentliche Protokoll. Sie stellen also
 eine Bibliothek bereit um MPD--Clients zu schreiben, während ``libmoosecat``
-eine Bibliothek ist, die einen MPD--Client implementiert. Das hat den Vorteil
-die gesamte, doch recht komplizierte, Fehlerbehandlung und Kommunikation in
-einer gemeinsamen Code-Basis zu haben die definierte Schnittstellen nach außen
+eine Bibliothek ist, die einen MPD--Client implementiert. Das hat den Vorteil,
+dass die gesamte, doch recht komplizierte, Fehlerbehandlung und Kommunikation in
+auf gemeinsamen Code-Basis basiert die definierte Schnittstellen nach außen
 bietet.
 
-``libmoosecat`` baut auf ``libmpdclient`` um folgende Features zu ermöglichen:
+``libmoosecat`` baut auf ``libmpdclient`` auf um folgende Features zu ermöglichen:
 
 - Konsistente API zu den wichtigsten MPD--Funktionen ohne sich mit dem
   historisch gewachsenen Protokoll auseinander setzen zu müssen (TODO: link)
@@ -433,14 +618,53 @@ Header--Kommentare hinzugefügt (TODO: Beispiellink). Zudem wurde ein sogenannte
 ``override``--Modul bereitgestellt, welches die API ,,Pythonic" macht und
 typische C--Konstrukte wie Output--Parameter versteckt.
 
-# Python Anteil
+## Suchsyntax
 
-* Python
-* C
+Die freie SQL--Datenbank ``SQLite3`` unterstützt Volltextsuche. Dazu
+implementiert die ``fts3``--Erweiterung (*f*ull *t*ext *s*earch) eine spezielle
+``MATCH``--Klausel. Als Argument übergibt man dieser einen String in einer
+bestimmten Syntax. Diese Syntax entspricht im einfachsten Falle einen simplen
+Suchbegriff der dann in allen Spalten der Datenbank gesucht wird. Zudem können
+spezielle Spalten ausgewählt werden und verschiedene Ausdrücke mit den `` AND ``, `` OR `` und `` NOT `` verbunden werden. Auch können Ausdrücke geklammert
+werden um doppeldeutige Reihenfolgen eindeutig zu machen. Auch sind Wildcards
+möglich um nur den Anfang eines Strings zu matchen.
+
+Die genaue Beschreibung der Syntax findet sich hier: 
+
+    https://www.sqlite.org/fts3.html
+
+Am Beispiel einer Musikdatenbank kann ein Ausdruck etwa so aussehen:
+
+```bash
+    (artist:Knorkator OR album:"Hasen*") AND (artist:knor OR album:knor OR
+    album_artist:knor OR title:knor) AND genre:rock AND NOT (date:2001 OR
+    date:2002 OR date:2003)
+```
+
+Das ist natürlich für einen normalen Anwender eher schwer zu tippen oder zu
+lesen. Daher verwendet ``libmoosecat`` eine alternative Syntax, die einfacher
+zu tippen ist. Vor einer Datenbankabfrage wird diese dann automatisch in eine
+kompatible `MATCH`--Klausel kompiliert.
+
+Der obige Ausdruck kann mit dieser Syntax von oben so umgeschrieben werden:
+
+```bash
+    (a:Knorkator | b:"Hasen*") + knor g:rock ! d:2001-2003
+```
+
+Im Detail wird ``AND`` mit ,,``+``'', ``OR`` mit ,,``|``'' ersetzt und ``NOT`` mit
+,,``!``''. Die Spaltennamen erhalten jeweils Abkürzungen, so wird beispielsweise aus
+den längeren ``artist:SomeArtist`` das kürzere ``a:SomeArtist``. 
+Einzelne Begriffe wie ``a`` werden zu ``(artist:a OR album:a OR album_artist:a
+OR )`` ersetzt, da eine Suche in anderen Spalten wenig Sinn macht oder
+ungewollte Ergebnisse liefert. Bei der ``date:`` Spalte soll es zudem möglich
+sein einen Bereich anzugeben. Eine Bereichsuche ist zwar in der Volltextsuche
+nicht vorgesehen, kann aber (ineffizient) emuliert werden indem für jede Zahl in
+diesem Bereich ein ``date:<zahl>`` Begriff eingefügt wird. Siehe dazu das
+Beispiel oben.
 
 ## Verwendete Bibiotheken
 
-    * Tornado, Flask, Bootstrap
     * libmoosecat, glyrc
 
 Warum diese Bibiotheken? 
@@ -449,7 +673,8 @@ Warum diese Bibiotheken?
 
 * Verwendete Tools
 * Tests
-* Inbetriebnahme (Docker)
+
+## Inbetriebnahme via Docker
 
 Da ``libmoosecat`` momentan nur mit Insiderwissen ordnungsgemäß kompiliert
 werden kann haben wir einen Docker--Container vorbereitet in dem das Backend
@@ -509,6 +734,7 @@ realisiert wurden.
 
 - Tests. 
 - Filterbare *stored playlists*.
+- Einbau von *libmunin*
 - Dateibrowser für die Datenbankansicht.
 - Support um zu mehreren MPD Servern zu connecten.
   Momentan muss der MPD Server beim Starten des Backends angegeben werden. 
@@ -523,7 +749,7 @@ realisiert wurden.
   GET auf diesen Link holt der Flask Teil das Coverart aus dem Cache und
   liefert es aus.
 
-## Abschliessendes Resume (Aufteilung in 3 Codebasen sinnvoll? Nein doch oh!)
+## Abschliessendes Resume
 
 Snøbær war unser erster ,,richtiger'' Ausflug in die Webprogrammierung. Vorher
 hatten wir mit dem Web nur am Rande zu tun (Katzen auf Imgur anschauen). Auch
