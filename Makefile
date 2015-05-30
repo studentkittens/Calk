@@ -14,4 +14,4 @@ wind:
 	python3 snobaer/__init__.py
 
 doc:
-	pandoc docs/documentation.md -N -o documentation.pdf
+	pandoc docs/documentation.md -N --filter pandoc-fignos -o documentation.pdf
