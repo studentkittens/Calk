@@ -2,6 +2,8 @@
 documentclass: scrartcl
 title: Der Webmpd-Client Snøbær
 author: Christopher Pahl und Christoph Piechula
+lang: german
+sections: yes
 toc: yes
 date: \today
 ---
@@ -51,9 +53,10 @@ hochdeusch Schneebeeren, entschieden. Um parallel den Unicode--Support in der
 Welt zu verbessern und nördig zu wirken bedienten wir uns zudem der nordischen
 Sprache und übersetzten Schneebeere auf Norwegisch: Snøbær.
 
-![Logo von Snøbær](docs/pics/logo.png)
+![Logo von Snøbær](docs/pics/logo.png) {#fig:snobaerlogo}
 
-Das Logo zeigt eine Schneebeere, es wurde mittels Inkscape für Snøbær erstellt.
+Das Logo in Abbildung {@fig:snobaerlogo} zeigt eine Schneebeere, es wurde
+mittels Inkscape für Snøbær erstellt.
 
 # Grundlagen: Music Player Daemon und seine Clients
 
@@ -64,7 +67,7 @@ Formate einlesen und auf viele Audiobackends ausgeben. Zudem ist er sehr robust
 und spielt auch zuverlässig bei hoher Systemlast noch Musik ab --- im Gegensatz
 zu Amarok wo die Systemlast durch das Abspielen erst generiert wird.
 
-![MPD-Architecture Overview, Quelle: http://mpd.wikia.com/](docs/pics/mpd-overview.png)
+![MPD-Architecture Overview, Quelle: http://mpd.wikia.com/](docs/pics/mpd-overview.png){#fig:mpdarchitecture}
 
 Die meisten MPD-Konzepte sind bereits aus anderen Musikplayern bekannt, werden
 aber hier noch kurz erwähnt:
@@ -86,7 +89,7 @@ widergespiegelt wird. Sollten mehrere  Zustände gewünscht sein, so kann man se
 MPD 0.19 zusätzlich Proxy--Server einrichten, die selbst als Clients des
 Haupt--,,Servers'' fungieren, aber einen eigenen Zustand besitzen:
 
-![MPD-Proxy Konzept](docs/pics/proxy.png)
+![MPD-Proxy Konzept](docs/pics/proxy.png) {#fig:mpdproxy}
 
 Dieses Prinzip wird beispielsweise in unserer Wohngemeinschaft genutzt um die
 Metadaten der Musiksammlung durch einen Hauptserver zu verwalten, der selbst
@@ -119,29 +122,29 @@ Es bietet folgenden Ansichten:
 
 ### *Now Playing* 
 
-![Now Playing View](docs/pics/playing.png)
+![Now Playing View](docs/pics/playing.png) {#fig:playingview}
 
-Die Ansicht stellt die Standardansicht dar. Hier werden Informationen zum
+Die Ansicht (Abbildung @fig:playingview) stellt die Standardansicht dar. Hier werden Informationen zum
 aktuell spielenden Lied und dem aktuellen Album angezeigt. Desweiteren sind
 unter dem Cover aktuelle Statistiken. Die Tracklist neben dem Cover zeigt alle
 weiteren Lieder auf dem selben Album. Das aktuell spielende Lied ist dabei
 bläulich hervorgehoben. Lieder die nicht in der Queue sind werden ausgegraut
 angezeigt.
 
-![Now Playing Ansicht mit Lyrics](docs/pics/lyrics.png)
+![Now Playing Ansicht mit Lyrics](docs/pics/lyrics.png) {#fig:playingviewlyrics}
 
-In der Ansicht ist die Lyrics-Funktionalität sichtbar. Drückt man auf einen
+In der Ansicht (Abbildung @fig:playingviewlyrics) ist die Lyrics-Funktionalität sichtbar. Drückt man auf einen
 ,,gestreiften Button'' neben einem Lied in der Trackliste, so werden beim
 Backend die entsprechenden Lyrics abgefragt und im erfolgsfall in einem Modalen
 Dialog angezeigt. 
 
 ### *Queue*
 
-![Queue View](docs/pics/queue.png)
+![Queue View](docs/pics/queue.png) {#fig:queueview}
 
-Die Queue stellt eine Abspielliste dar. In dieser Liste befinden sich Lieder die
-aktuell angespielt werden sollen. Die Queue wird bei anderen Musikplayern oft
-als ,,Playlist'' bezeichnet. 
+Die Queue (Abbildung @fig:queueview) stellt eine Abspielliste dar. In dieser
+Liste befinden sich Lieder die aktuell angespielt werden sollen. Die Queue wird
+bei anderen Musikplayern oft als ,,Playlist'' bezeichnet. 
 
 Die Queue bietet die Möglichkeit der Volltextsuche. Zusätzlich kann die aktuelle
 Queue als als ,,stored playlist'' unter einem bestimmten Namen gespeichert
@@ -152,39 +155,39 @@ TODO: Sachen wie Autovervollständigung und spezielle Query syntax
 
 ### *Database*
 
-![Database View](docs/pics/database.png)
+![Database View](docs/pics/database.png) {#fig:databaseview}
 
-Die Database View zeigt alle dem MPD bekannten Lieder an. Mittels der
-Suchfunktion kann die Datenbank gefiltert werden. Mittels des ,,add
-visible''--Buttons (Auge--Icon) kann die gefilterte Liste direkt in die Queue
-geladen werden. Mit dem ,,Plus''--Button können alle Lieder in die Queue zum
-Abspielen geladen werden. Der Button ganz rechts (,,Circle--Arrow'') bittet den
-MPD seine Datenbank, falls nötig, zu aktualisieren. Dies geschieht in der Regel
-nur wenn neue Lieder der Datenbank hinzugefügt wurden.
+Die Database View (Abbildung @fig:databaseview) zeigt alle dem MPD bekannten
+Lieder an. Mittels der Suchfunktion kann die Datenbank gefiltert werden. Mittels
+des ,,add visible''--Buttons (Auge--Icon) kann die gefilterte Liste direkt in
+die Queue geladen werden. Mit dem ,,Plus''--Button können alle Lieder in die
+Queue zum Abspielen geladen werden. Der Button ganz rechts (,,Circle--Arrow'')
+bittet den MPD seine Datenbank, falls nötig, zu aktualisieren. Dies geschieht in
+der Regel nur wenn neue Lieder der Datenbank hinzugefügt wurden.
 
 
 ### *Playlists*
 
-![Playlist view](docs/pics/playlist.png)
+![Playlist view](docs/pics/playlist.png) {#fig:playlistview}
 
-Diese sehr einfache Ansicht zeigt eine Liste von vorhandenen ,,stored
-playlists''. Jede Playlist wird dabei als Button dargestellt. Beim Drücken
-dieses wird die Playlist in die Queue geladen. Der ,,X''--Button bei jeder
-Playlist löscht diese.
+Diese sehr einfache Ansicht (Abbildung @fig:playlistview) zeigt eine Liste von
+vorhandenen ,,stored playlists''. Jede Playlist wird dabei als Button
+dargestellt. Beim Drücken dieses wird die Playlist in die Queue geladen. Der
+,,X''--Button bei jeder Playlist löscht diese.
 
 ### *Modale Dialoge*
 
-![Modale Dialoge](docs/pics/modal_overview.png)
+![Modale Dialoge](docs/pics/modal_overview.png) {#fig:modaldialogs}
 
-Zur weiteren Übersicht zeigt der Screenshot die in Snøbær vorhandenen Modalen
-Dialoge. 
+Zur weiteren Übersicht zeigt der Screenshot (Abbildung @fig:modaldialogs) die in
+Snøbær vorhandenen Modalen Dialoge. 
 
 
 # Architektur
 
-![Grobübersicht Architektur](docs/pics/architektur.png)
+![Grobübersicht Architektur](docs/pics/architektur.png) {#fig:architecture}
 
-Die Abbildung zeigt eine Grobübersicht der Architektur von Snøbær. Das
+Die Abbildung @fig:architecture zeigt eine Grobübersicht der Architektur von Snøbær. Das
 Backend spaltet sich in die zwei Teile auf. Das MPD--Backend erledigt die
 Kommunikation mit dem MPD-Server, das Web--Backend implementiert das Protokoll
 zwischen Frontend und Backend. Zudem leitet es Nutzereingaben vom Frontend an
