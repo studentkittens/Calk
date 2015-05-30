@@ -333,10 +333,24 @@ abschicken. Diese Nachrichtentypen sind im Einzelnen:
 ```coffee
     # `command` is a libmoosecat client command.
     # Examples "('next', )" or "('play-id', 42)"
-    # More information here: http://tinyurl.com/p5w3ljl
     {'type': 'mpd', 'detail': command}
 ```
     
+Die Kommandos die im `detail` Feld angegeben sind haben ein spezielles String
+Format, welches von ``libmoosecat`` (einer MPD--Client--Bibliothek, TODO ref)
+vorgegeben wird. Das Format entspricht einem Python Tupel, bei dem der erste
+Wert stets der Name des Kommandos ist. Falls nötig folgen noch weitere Parameter
+mit bestimmten Typen. Die Signatur der einzelnen Kommandos muss momentan mangels
+Dokumentation im Quellcode nachgesehen werden: [^moose_client]. 
+
+``libmoosecat`` nutzt ``GVariant`` [^gvariant] zum Entpacken der einzelnen
+Kommandos. Sollte die Signatur nicht passen wird eine Warnung im Log ausgegeben und das
+Kommando ignoriert.
+
+[^moose_client]: http://tinyurl.com/p5w3ljl
+[^gvariant]: https://developer.gnome.org/glib/stable/gvariant-format-strings.html
+
+TODO: Momentan wird kein escaping der commands im client betrieben
 
 * **Completion:** Vervollständigung einer Suchanfrage.
 
@@ -554,11 +568,11 @@ aber intern den `GLIb`--Mainloop.
 
 ### MPD--backend
 
-TODO: Suchsyntax behandeln und MPD Commands.
+Da Herr Pahl bereits als Nebenprojekt eine freie C--Bibliothek zur einfachen
+Kommunikation mit dem MPD geschrieben hat bot es sich an diese, trotz des
+relativ frühen Entwicklungsstandes, zu nutzen. 
 
-Da Herr Pahl bereits als freies Nebenprojekt eine C--Bibliothek zur einfachen
-Kommunikation mit dem MPD geschrieben hat bot es sich an diese zu nutzen. Die
-meisten Client--Bibliotheken für den MPD (Beispiele: ``libmpdclient``,
+Die meisten Client--Bibliotheken für den MPD (Beispiele: ``libmpdclient``,
 ``python-mpd2``) implementieren nur das eigentliche Protokoll. Sie stellen also
 eine Bibliothek bereit um MPD--Clients zu schreiben, während ``libmoosecat``
 eine Bibliothek ist, die einen MPD--Client implementiert. Das hat den Vorteil,
@@ -587,45 +601,56 @@ um das in C geschrieben ``libmoosecat`` komfortabel von Python aus nutzen zu
 können. Vorher existierte bereits ein rudimentärer Cython--Wrapper, der
 allerdings viel Handarbeit und Fehlersuche benötigte. Daher begann Herr Pahl 
 ``libmoosecat`` vor einiger Zeit auf ``GObject`` (TODO: Erklärung) Basis
-umzuschreiben. Das hat nicht nur den Vorteil, dass die Bibliothek jetzt
+umzuschreiben. ``GObject`` ist ein Objektsystem für die eigentlich nicht
+objektorientierte Programmiersprache ``C``. Der Umbau zu ``GObject`` wurde
+jedoch durch andere Projekte und Tätigkeiten unterbrochen, daher bot Snøbær eine
+gute Gelegenheit die Arbeit wieder aufzunehmen.
+
+Das hat nicht nur den Vorteil, dass die Bibliothek jetzt
 konsistent Objekte nutzt, sondern diese Objekte können auch mittels
 ,,Introspection'' von anderen Sprachen benutzt werden. Dazu bedarf es pro
-Sprache nur ein gemeinsames Modul welches zwischen ``GObject`` und der Sprache
-vermittelt. Bei Python ist dieses Modul ``pygobject``. Die eigentlichen Bindings
+Sprache nur ein gemeinsames Modul welches zwischen ``GObject`` und den
+Sprachinternas vermittelt. Bei Python ist dieses Modul ``PyGobject``. Die eigentlichen Bindings
 zu ``libmoosecat`` können dann auf sehr einfache Art aus den C-Headerdateien
-generiert werden. Diese daraus gelesen Informationen (ein sogenanntes
+generiert werden [^Introspection_header].
+
+Diese daraus gelesen Informationen (ein sogenanntes
 ``gi-repository``)  können dann von ``pygobject`` gelesen werden. Diese
 Informationen umfassen beispielsweise welche Funktionen und Methoden exportiert
-werden sollen und wem der allokierte Speicher gehört bzw. ob der Aufrufer eine
-Referenz auf das Objekt hält (sowohl GObject als auch Python besitzen ein
-referenzzähler-basiertes Speichermodell).
+werden sollen und ob der Aufrufer eine Referenz auf den Rückgabewert hält oder
+ob er eine volle Kopie davon hat.
+
+[^introspection_header]: https://github.com/studentkittens/moosecat/blob/master/lib/mpd/moose-mpd-client.h#L201
 
 Auch viele andere ``GObject`` basierte Bibliotheken sind über diese
 Schnittstelle angebunden. Ein prominentes Beispiel ist ``Gtk+``.
 
-Ist ``libmoosecat`` installiert kann so von Python aus benutzt werden: 
+**Einsatz:** Ist ``libmoosecat`` installiert kann man es von Python aus benutzt werden: 
 
 ```python
 >>> from gi.repository import Moose
 >>> client = Moose.Client.new(Moose.Protocol.DEFAULT)
 >>> client.connect_to(port=6666)
->>> client.send_simple('next')
+>>> client.send_simple('next')  # Actually sends "('next', )"
 ```
 
-Für diese Arbeit wurde die Portierung auf ``GObject``, welche durch andere
-Projekte unterbrochen wurde, vervollständigt und es wurden entsprechende
-Header--Kommentare hinzugefügt (TODO: Beispiellink). Zudem wurde ein sogenanntes
-``override``--Modul bereitgestellt, welches die API ,,Pythonic" macht und
-typische C--Konstrukte wie Output--Parameter versteckt.
+``Introspection`` ist sehr angenehm, aber nicht perfekt. So nutzen noch manche Teile
+der API noch `C`--Idiome die in `Python` unüblich sind (*Outparameter*
+beispielsweise). Um diesen Misstand zu beheben wurde auch ein
+``override``--Modul entwickelt[^override_module], das diese Teile der API *,,Pythonic''* macht
+indem es bestimmte Methoden überschreibt.
+
+[^override_module]: https://github.com/studentkittens/moosecat/blob/master/lib/Moose.py
 
 ## Suchsyntax
 
 Die freie SQL--Datenbank ``SQLite3`` unterstützt Volltextsuche. Dazu
-implementiert die ``fts3``--Erweiterung (*f*ull *t*ext *s*earch) eine spezielle
+implementiert die mitgelieferte ``fts3``--Erweiterung (*f*ull *t*ext *s*earch) eine spezielle
 ``MATCH``--Klausel. Als Argument übergibt man dieser einen String in einer
 bestimmten Syntax. Diese Syntax entspricht im einfachsten Falle einen simplen
 Suchbegriff der dann in allen Spalten der Datenbank gesucht wird. Zudem können
-spezielle Spalten ausgewählt werden und verschiedene Ausdrücke mit den `` AND ``, `` OR `` und `` NOT `` verbunden werden. Auch können Ausdrücke geklammert
+spezielle Spalten ausgewählt werden und verschiedene Ausdrücke mit den `` AND ``, 
+`` OR `` und `` NOT `` verbunden werden. Auch können Ausdrücke geklammert
 werden um doppeldeutige Reihenfolgen eindeutig zu machen. Auch sind Wildcards
 möglich um nur den Anfang eines Strings zu matchen.
 
@@ -663,16 +688,24 @@ nicht vorgesehen, kann aber (ineffizient) emuliert werden indem für jede Zahl i
 diesem Bereich ein ``date:<zahl>`` Begriff eingefügt wird. Siehe dazu das
 Beispiel oben.
 
-## Verwendete Bibiotheken
-
-    * libmoosecat, glyrc
-
-Warum diese Bibiotheken? 
+| **Attribut**   | **Abkürzung** | **Beschreibung**             |
+|----------------|---------------|------------------------------|
+| `artist`       | `a`           | Künstler                     |
+| `album`        | `b`           | Albumtitel                   |
+| `album_artist` | `c`           | Künstler des gesamten Albums |
+| `title`        | `t`           | Songtitel                    |
+| `genre`        | `g`           | Genre                        |
+| `disc`         | `s`           | Disknummer                   |
+| `duration`     | `d`           | Dauer in Sekunden            |
+| `date`         | `y`           | Releasedatum                 |
+| `track`        | `r`           | Tracknummer                  |
+| uri            | u             | Songpfad                     |
 
 # Entwicklungsumgebung
 
-* Verwendete Tools
-* Tests
+## Tests
+
+test mpd server.
 
 ## Inbetriebnahme via Docker
 
@@ -701,6 +734,10 @@ mit Snøbær keinen Sound hören.
 Unter Umständen müssen nach dem Starten noch Songs aus der Datenbank zur Queue
 hinzugefügt werden bevor etwas abgespielt werden kann.
 
+## Developement Tools
+
+bower, make file, coffee lint
+
 # Fazit
 
 ## Known Bugs
@@ -725,6 +762,8 @@ hinzugefügt werden bevor etwas abgespielt werden kann.
   nicht der song id.
 
 - Gelegentliche crashes, ebenfalls durch reference counting verursacht.
+
+  Lösung: Viele Stunden Debugging und Tests.
       
 ## Mögliche Erweiterungen und Verschönerungen
 
@@ -760,3 +799,5 @@ ließ sich das Framework um die gewünschte Funktionalität ,,recht einfach''
 erweitern. Die Kombination für das Backend mit Tornado funktioniert soweit gut,
 jedoch wäre an dieser Stelle womöglich eine ,,simplere'' Lösung wünschenswert
 die sich mit nur einem Framework realisieren lässt. 
+
+TODO: GObject vs. Cython, hohe Lernkurve aber sehr performante Kombination.
