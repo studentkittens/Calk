@@ -12,7 +12,7 @@ date: \today
 
 ## Einleitung
 
-Das Ziel der der Studienarbeit ist es eine Software mit einem Python
+Das Ziel der Studienarbeit ist es eine Software mit einem Python
 Webframework umzusetzen. Aus persönlichen Interesse haben wir uns für einen
 Music Player Client (kurz MPC) entschieden. 
 
@@ -22,22 +22,27 @@ Der Server verwaltet dabei die komplette Datenbank samt Metadaten, der Client
 hingegen dient lediglich als ,,Fernbedienung'' und zeigt oft noch Coverart und
 weitere Daten an. 
 
-Auf der offiziellen MPD--Seite (TODO: link) gibt es eine Liste aller verfügbaren
+Auf der offiziellen MPD--Seite[^mpdclientspage] gibt es eine Liste aller verfügbaren
 MPD--Clients --- es sind mittlerweile über 200. Darunter sind auch einige
-Webbasierte Clients, wie ympd, Volumino (Debian basierend) oder RuneOS
-(Archlinux basierend). Die beiden letzteren sind sogar vollwertige
-HiFi-Audioplayer Linux--Distrubitionen mit den Raspberry Pi als
+Webbasierte Clients, wie ympd, Volumio[^volumiopage] (Debian basierend) oder RuneAudio
+[^runeaudiopage] (Archlinux basierend). Die beiden letzteren sind sogar vollwertige
+HiFi-Audioplayer Linux--Distributionen mit den Raspberry Pi als
 Hauptzielplattform. Leider sind diese relativ groß und komplex und auch noch in
-PHP geschrieben. ympd ist hingegen in C geschrieben und kommuniziert mittels
+PHP geschrieben. ympd[^ympdpage] ist hingegen in C geschrieben und kommuniziert mittels
 Websockets mit dem auf Bootstrap basierten Javascript Frontend. 
+
+[^mpdclientspage]: Liste mit MPD--Clients: \url{http://mpd.wikia.com/wiki/Clients}
+[^volumiopage]: Volumio Webpage: \url{https://volumio.org/}
+[^runeaudiopage]: RuneAudio Webpage: \url{http://www.runeaudio.com/}
+[^ympdpage]: ympd Webpage: \url{http://www.ympd.org/}
 
 ## Zielsetzung
 
 Das Ziel unseres Projekt ist es nun eine Mischung beider Welten herzustellen.
 Zum einen soll der Client in C geschrieben sein, zudem groß und fett. Nein,
 Scherzle macht. Das eigentliche Ziel der Arbeit ist es einen MPD-Client zu
-schaffen welcher leichtgewichtig wie ympd ist und den Komfort von Volumio/RuneOS
-bietet und zusätzlich plattformunabhängig ist.
+schaffen welcher leichtgewichtig wie ympd ist und den Komfort von
+Volumio/RuneAudio bietet und zusätzlich plattformunabhängig ist.
 
 Da der Audiosetup in unserer Wohngemeinschaft auf einem Raspberry PI basiert,
 ist es zudem wünschenswert, dass das Backend relativ ressourcenschonend ist um
@@ -49,7 +54,7 @@ Da es in letzter Zeit hipp ist, Früchte in technische Produktnamen zu
 integrieren (Raspberry Pi, Bananna Pi, ...) springen wir nun auf diesen Zug auf
 und bedienen uns diesem Schema. Da es um Musik geht und die Software
 auf einem Raspberry Pi laufen soll haben wir uns hier für ,,Knallerbsen'',
-hochdeusch Schneebeeren, entschieden. Um parallel den Unicode--Support in der
+hochdeutsch Schneebeeren, entschieden. Um parallel den Unicode--Support in der
 Welt zu verbessern und nördig zu wirken bedienten wir uns zudem der nordischen
 Sprache und übersetzten Schneebeere auf Norwegisch: Snøbær.
 
@@ -60,10 +65,10 @@ mittels Inkscape für Snøbær erstellt.
 
 # Grundlagen: Music Player Daemon und seine Clients
 
-Um einen Musicplayer zu entwickeln eignet sich ein MPC besonders, da man nicht
+Um einen Music Player zu entwickeln eignet sich ein MPC besonders, da man nicht
 das Rad neu erfinden muss. Der MPD bringt bereits die meisten Funktionalitäten
-und Konzepte aus anderen Musicplayern mit. Er kann bereits alle gebräuchlichen
-Formate einlesen und auf viele Audiobackends ausgeben. Zudem ist er sehr robust
+und Konzepte aus anderen Music Playern mit. Er kann bereits alle gebräuchlichen
+Formate einlesen und auf viele Audio--Backends ausgeben. Zudem ist er sehr robust
 und spielt auch zuverlässig bei hoher Systemlast noch Musik ab --- im Gegensatz
 zu Amarok wo die Systemlast durch das Abspielen erst generiert wird.
 
@@ -77,10 +82,12 @@ aber hier noch kurz erwähnt:
   abgespielt werden.
 * Der Inhalt der *Queue* kann als *Stored Playlist* unter einem Namen
   abgespeichert werden und zu einem späteren Zeitpunkt wieder geladen werden.
-* Clients sprechen mit dem MPD über ein definiertes Textprotokoll (TODO: Link) 
-* Es sind mehrere Audioausgaben möglich, darunter ALSA, Pulseaudio oder auch ein
+* Clients sprechen mit dem MPD über ein definiertes Textprotokoll[^mpdprotocol] 
+* Es sind mehrere Audioausgaben möglich, darunter ALSA, PulseAudio oder auch ein
   HTTP Stream. Zudem lassen sich die Qualitätseinstellungen detailiert anpassen
   (libsamplerate etc) weswegen er bei audiophilem Publikum sehr beliebt ist.
+
+[^mpdprotocol]: MPD Textprotokoll: \url{http://www.musicpd.org/doc/protocol/}
 
 Da der MPD netzwerkfähig ist können sich mehrere Clients auf ihn schalten und
 den ,,Zustand" des Servers ändern (wie beispielsweise das aktuell spielende
@@ -94,7 +101,7 @@ Haupt--,,Servers'' fungieren, aber einen eigenen Zustand besitzen:
 Dieses Prinzip wird beispielsweise in unserer Wohngemeinschaft genutzt um die
 Metadaten der Musiksammlung durch einen Hauptserver zu verwalten, der selbst
 keine Audioausgabe besitzt, dafür aber Zugriff auf die Musikdaten hat. Auf jedem
-abspielfähigem Gerät befindet sich dann ein Proxyserver, welcher die Metadaten
+abspielfähigen Gerät befindet sich dann ein Proxy--Server, welcher die Metadaten
 des Hauptservers spiegelt und vom Nutzer des Rechners mittels eines MPD--Clients
 gesteuert werden kann. 
 
@@ -147,11 +154,18 @@ Liste befinden sich Lieder die aktuell angespielt werden sollen. Die Queue wird
 bei anderen Musikplayern oft als ,,Playlist'' bezeichnet. 
 
 Die Queue bietet die Möglichkeit der Volltextsuche. Zusätzlich kann die aktuelle
-Queue als als ,,stored playlist'' unter einem bestimmten Namen gespeichert
+Queue als als *Stored Playlist* unter einem bestimmten Namen gespeichert
 werden. Daneben gibt es noch einen ,,Clear all''--Button, welcher die gesamte
 Queue leert.
 
-TODO: Sachen wie Autovervollständigung und spezielle Query syntax
+Die Suche unterstützt Autovervollständigung. Nach Eingabe mindestens zweiten
+Buchstaben wird versucht die Suchanfrage zu vervollständigen. Dies geschieht
+indem ein Completion--Request an das Backend gesendet wird. Falls eine
+Vervollständigung möglich ist antwortet dieser mit der vervollständigten
+Suchanfrage.
+
+TODO: Sachen wie Autovervollständigung und spezielle
+Query syntax
 
 ### *Database*
 
@@ -171,7 +185,7 @@ der Regel nur wenn neue Lieder der Datenbank hinzugefügt wurden.
 ![Playlist view](docs/pics/playlist.png) {#fig:playlistview}
 
 Diese sehr einfache Ansicht (Abbildung @fig:playlistview) zeigt eine Liste von
-vorhandenen ,,stored playlists''. Jede Playlist wird dabei als Button
+vorhandenen *Stored Playlists*. Jede Playlist wird dabei als Button
 dargestellt. Beim Drücken dieses wird die Playlist in die Queue geladen. Der
 ,,X''--Button bei jeder Playlist löscht diese.
 
@@ -198,11 +212,15 @@ das MPD--Backend weiter.
 Das Frontend ist gänzlich in CoffeeScript geschrieben. Da wir vorher nur sehr
 wenig mit Webprogrammierung zu tun hatten, hatten wir keine direkten Präferenzen
 und entschieden uns für CoffeeScript aufgrund der einfachen, Python-ähnlichen
-Syntax. Zudem eilte der Sprache der Ruf voraus viele problematischen Aspekte von
+Syntax. Zudem eilte der Sprache der Ruf voraus viele problematische Aspekte von
 JavaScript hinter einer angenehmen Syntax zu verstecken. Als Beispiel wäre hier
 der *,,fat arrow''* von CoffeeScript zu nennen der im Hintergrund dafür sorgt
 dass eine Variable die an eine Closure gebunden wird den Wert zur Zeit der
-Bindung behält. In JavaScript wird dies etwas umständlich. //TODO
+Bindung behält. In JavaScript wird dies etwas umständlich. //TODO ->>>>
+
+Für das Frontend wurde das Bootstrap CSS Framework mit jQuery verwendet. JQuery
+ist eine JavaScript--Bibliothek welche alle unangenehmen
+DOM--Manipulation--Tasks kapselt. 
 
 //TODO jQuery/Bootstrap und andere libs erklären
 
@@ -232,9 +250,9 @@ Nachrichten. Diese Nachrichten haben als gemeinsamen Nenner folgenden Header:
 ```
 
 Wo nötig kommen noch weitere Felder dazu. Wir entschieden uns gegen eine
-umfangreichere Lösung wie JSONRpc (bzw. vergleichbare Lösungen) um weitere
+umfangreichere Lösung wie JSON--RPC (bzw. vergleichbare Lösungen) um weitere
 Abstraktion (und damit möglicherweise Performanceprobleme) sowie zusätzliche
-Abhängigkeiten zu vermeiden. In Retroperspektive wäre JSONRpc allerdings
+Abhängigkeiten zu vermeiden. In Retrospektive wäre JSON--RPC allerdings
 möglicherweise eine gute Ergänzung gewesen um ein gutes Stück unnötige
 Fehlerbehandlung im Backend zu vermeiden.
 
@@ -417,7 +435,6 @@ typische C--Konstrukte wie Output--Parameter versteckt.
 
 # Python Anteil
 
-
 * Python
 * C
 
@@ -491,7 +508,7 @@ Moosecat und co. bieten prinzipiell weitaus mehr Features als im Frontend
 realisiert wurden.
 
 - Tests. 
-- Filterbare stored playlists.
+- Filterbare *stored playlists*.
 - Dateibrowser für die Datenbankansicht.
 - Support um zu mehreren MPD Servern zu connecten.
   Momentan muss der MPD Server beim Starten des Backends angegeben werden. 
@@ -509,7 +526,11 @@ realisiert wurden.
 ## Abschliessendes Resume (Aufteilung in 3 Codebasen sinnvoll? Nein doch oh!)
 
 Snøbær war unser erster ,,richtiger'' Ausflug in die Webprogrammierung. Vorher
-hatten wir mit dem Web nur am Rande zu tun.
-Auch wenn wir den Eindruck hatten dass die Webprogrammierung oft leicht
-chaotisch und ,,hacky'' wirkt (häufiges CSS Gefrickel etc.) ließ sich in recht
-kurzer Zeit ein funktionierender Prototyp entwickeln.
+hatten wir mit dem Web nur am Rande zu tun (Katzen auf Imgur anschauen). Auch
+wenn wir den Eindruck hatten dass die Webprogrammierung oft leicht chaotisch und
+,,hacky'' wirkt (häufiges CSS--Gefrickel etc.) ließ sich in recht kurzer Zeit
+ein funktionierender Prototyp entwickeln. Dank des modularen Ansatzes von Flask,
+ließ sich das Framework um die gewünschte Funktionalität ,,recht einfach''
+erweitern. Die Kombination für das Backend mit Tornado funktioniert soweit gut,
+jedoch wäre an dieser Stelle womöglich eine ,,simplere'' Lösung wünschenswert
+die sich mit nur einem Framework realisieren lässt. 
