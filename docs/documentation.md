@@ -1,13 +1,13 @@
 ---
 documentclass: scrartcl
-title: Der Webmpd-Client Snøbær
-author: Christopher Pahl und Christoph Piechula
 fontsize: 11pt
 lang: german
 sections: yes
 toc: yes
 date: \today
 ---
+
+\newpage
 
 # Vorwort
 
@@ -31,6 +31,14 @@ HiFi-Audioplayer Linux--Distributionen mit den Raspberry Pi als
 Hauptzielplattform. Leider sind diese relativ groß und komplex und auch noch in
 PHP geschrieben. ympd[^ympdpage] ist hingegen in C geschrieben und kommuniziert mittels
 Websockets mit dem auf Bootstrap basierten Javascript Frontend. 
+
+Die Studienarbeit hat als Abhängigkeit zwei C--Bibliotheken (libmoosecat,
+libglyr), die Herr Pahl vor einiger Zeit implementiert hat. Für erstere 
+Bibliothek musste Herr Pahl erstmal parallel zur eigentlichen Studienarbeit
+Python--Bindings entwickeln. Durch diesem Umstand und durch den Umstand der
+,,Agilen Webentwicklung'' wurde für die Entwicklung der Studienarbeit
+*Pair--Programming* angewandt --- die git logs stimmten so nicht mit den
+tatsächlichen Arbeitsweise überein.
 
 [^mpdclientspage]: Liste mit MPD--Clients: \url{http://mpd.wikia.com/wiki/Clients}
 [^volumiopage]: Volumio Webpage: \url{https://volumio.org/}
@@ -73,7 +81,7 @@ Formate einlesen und auf viele Audio--Backends ausgeben. Zudem ist er sehr robus
 und spielt auch zuverlässig bei hoher Systemlast noch Musik ab --- im Gegensatz
 zu Amarok wo die Systemlast durch das Abspielen erst generiert wird.
 
-![MPD-Architecture Overview, Quelle: http://mpd.wikia.com/](docs/pics/mpd-overview.png){#fig:mpdarchitecture}
+![MPD-Architecture Overview, modifizierte Quelle: \url{http://mpd.wikia.com/}](docs/pics/mpd-overview.png){#fig:mpdarchitecture}
 
 Die meisten MPD-Konzepte sind bereits aus anderen Musikplayern bekannt, werden
 aber hier noch kurz erwähnt:
@@ -126,7 +134,7 @@ dieser Reihenfolge):
 * *Consume*: Nach dem Abspielen wird das Lied aus der Queue entfernt.
 * *Single*: Beendet Abspielen nach dem aktuellen Lied.
 
-## Ansichten:
+## Ansichten
 
 Es bietet folgenden Ansichten:
 
@@ -167,7 +175,7 @@ indem ein Completion--Request an das Backend gesendet wird. Falls eine
 Vervollständigung möglich ist antwortet dieser mit der vervollständigten
 Suchanfrage.
 
-Über die erweiterte Suchsyntax (TODO: ref) ist es möglich nur bestimmte
+Über die erweiterte Suchsyntax (siehe Kapitel [Suchsyntax]) ist es möglich nur bestimmte
 Attribute wie Titel, Genre, Artist oder Releasedate zu vervollständigen. So kann
 man einfach ,,t:Nich'' eintippen und erhält als Vervollständigung
 ,,t:Nichtimgriff'' von Farin Urlaub.
@@ -246,6 +254,9 @@ und ermöglicht es einige ,,unschönen'' Seiten von JavaScript zu umgehen.
 
 Der Optik wegen wird statt des normalen Bootstrap--CSS das *,,Readable''*--Theme
 von *Bootswatch* [^bootswatch_readable] eingesetzt.
+Um schöne Switchbuttons zu erstellen wird zudem das ``bootstrap-switch`` Plugin
+genutzt. Die Anzeige der Autovervollständigung erfolgt über `typeahead.js` von
+Twitter.
 
 [^bootswatch_readable]: `bootswatch-readable`: \url{https://bootswatch.com/readable/}
 
@@ -337,7 +348,8 @@ abschicken. Diese Nachrichtentypen sind im Einzelnen:
 ```
     
 Die Kommandos die im `detail` Feld angegeben sind haben ein spezielles String
-Format, welches von ``libmoosecat`` (einer MPD--Client--Bibliothek, TODO ref)
+Format, welches von ``libmoosecat`` (einer MPD--Client--Bibliothek,
+[siehe Kapitel über ``libmoosecat``][``libmoosecat``:])
 vorgegeben wird. Das Format entspricht einem Python Tupel, bei dem der erste
 Wert stets der Name des Kommandos ist. Falls nötig folgen noch weitere Parameter
 mit bestimmten Typen. Die Signatur der einzelnen Kommandos muss momentan mangels
@@ -347,10 +359,9 @@ Dokumentation im Quellcode nachgesehen werden: [^moose_client].
 Kommandos. Sollte die Signatur nicht passen wird eine Warnung im Log ausgegeben und das
 Kommando ignoriert.
 
-[^moose_client]: http://tinyurl.com/p5w3ljl
-[^gvariant]: https://developer.gnome.org/glib/stable/gvariant-format-strings.html
+[^moose_client]: libmoosecat Kommandos (Quellcode): \url{http://tinyurl.com/p5w3ljl}
+[^gvariant]: GVariant API: \url{https://developer.gnome.org/glib/stable/gvariant-format-strings.html} 
 
-TODO: Momentan wird kein escaping der commands im client betrieben
 
 * **Completion:** Vervollständigung einer Suchanfrage.
 
@@ -518,8 +529,6 @@ Verbindung zum MPD betreut.
 
 ### Web--Backend
 
-TODO: pip requirements.
-
 Das Kernstück zur Kommunikation bildet `Tornado`, der asynchrone Python
 Webserver. Dieser eignet sich für unsere Zwecke vor allem aufgrund der
 Python3--Kompatibilität und seiner relativ hohen Performance. 
@@ -531,15 +540,33 @@ die nicht direkt von `Tornado` bearbeitet worden an `Flask` weiterzuleiten.
 Konkret behandelt `Tornado` bei uns nur alle Websocketanfragen, alle anderen
 Anfragen werden über WSGI direkt an `Flask` weitergeleitet. 
 
+Weiterhin werden folgende Python--Bibliotheken für Snøbær verwendet:
+
+| **Bibiothek**       | **Einsatzzweck**                                    |
+| ------------------- | --------------------------------------------------- |
+| `flask-bootstrap`   | Bootstrap in Flask integrieren.                     |
+| `pyxdg`             | for defining the correct cache path (optional)      |
+| `colorlog`          | Farbige Logdatei (optional)                         |
+| `mutagen`           | Für mpd Testserver (optional)                       |
+| `nose`              | Testframework für Python.                           |
+| `pyaml`             | Yaml Formate lesen und schreiben.                   |
+| `PyGObject`         | Abhänigigkeit von libmoosecat.                      |
+| `docopt`            | Kommandozeilen Optionsparser.                       |
+| `uptime`            | Systeminformationen Dialog.                         |
+| `psutil`            | Systeminformationen Dialog.                         |
+
 Als problematisch stellte sich noch die Existenz zweier verschiedener Mainloops
-heraus. `libmoosecat` nutzt den weit verbreiteten GLib--Mainloop (TODO: Link)
+heraus. `libmoosecat` nutzt den weit verbreiteten GLib--Mainloop[^glibmainloop]
 während Tornado einen eigenen Mainloop nutzt. Letzterer bietet zwar eine
 Integration für viele andere Mainloops--Implementationen, GLib ist aber nicht
-dabei. Daher wurde nach kurzer Suche der Code unter
-TODO https://gist.github.com/schlamar/8420193 unseren Zwecken angepasst. Er wurde zu
-PyGObject portiert und ein paar kleinere Bugfixes wurden eingebracht.
-Dieser Mainloop ist ein Adapter der kompatibel zur `Tornado`--IOLoop API, nutzt
-aber intern den `GLIb`--Mainloop.
+dabei. Daher wurde nach kurzer Suche der Code (gioloop.py[^gioloop]) zu unseren Zwecken
+angepasst. Er wurde zu PyGObject portiert und ein paar kleinere Bugfixes wurden
+eingebracht. Dieser Mainloop ist ein Adapter der kompatibel zur
+`Tornado`--IOLoop API, nutzt aber intern den `GLIb`--Mainloop.
+
+
+[^glibmainloop]: GLib API: \url{https://developer.gnome.org/glib/stable/glib-The-Main-Event-Loop.html}
+[^gioloop]: Tornado IOLoop implementation with gobject: \url{https://gist.github.com/schlamar/8420193} 
 
 **Sourcecode--Layout:**
 
@@ -572,6 +599,8 @@ Da Herr Pahl bereits als Nebenprojekt eine freie C--Bibliothek zur einfachen
 Kommunikation mit dem MPD geschrieben hat bot es sich an diese, trotz des
 relativ frühen Entwicklungsstandes, zu nutzen. 
 
+#### ``libmoosecat``:
+
 Die meisten Client--Bibliotheken für den MPD (Beispiele: ``libmpdclient``,
 ``python-mpd2``) implementieren nur das eigentliche Protokoll. Sie stellen also
 eine Bibliothek bereit um MPD--Clients zu schreiben, während ``libmoosecat``
@@ -583,7 +612,7 @@ bietet.
 ``libmoosecat`` baut auf ``libmpdclient`` auf um folgende Features zu ermöglichen:
 
 - Konsistente API zu den wichtigsten MPD--Funktionen ohne sich mit dem
-  historisch gewachsenen Protokoll auseinander setzen zu müssen (TODO: link)
+  historisch gewachsenen Protokoll auseinander setzen zu müssen.
 - Synchrone und asynchrone Kommunikation mit dem Server.
 - SQLite Zwischenspeicher der Datenbank um Daten nur einmal im Speicher halten
   zu müssen und um das erneute Starten zu beschleunigen.
@@ -600,11 +629,13 @@ Für dieses Projekt musste allerdings noch ein Python--Wrapper realisiert werden
 um das in C geschrieben ``libmoosecat`` komfortabel von Python aus nutzen zu
 können. Vorher existierte bereits ein rudimentärer Cython--Wrapper, der
 allerdings viel Handarbeit und Fehlersuche benötigte. Daher begann Herr Pahl 
-``libmoosecat`` vor einiger Zeit auf ``GObject`` (TODO: Erklärung) Basis
+``libmoosecat`` vor einiger Zeit auf ``GObject``[^gobject_wiki] Basis
 umzuschreiben. ``GObject`` ist ein Objektsystem für die eigentlich nicht
 objektorientierte Programmiersprache ``C``. Der Umbau zu ``GObject`` wurde
 jedoch durch andere Projekte und Tätigkeiten unterbrochen, daher bot Snøbær eine
 gute Gelegenheit die Arbeit wieder aufzunehmen.
+
+[^GObject_wiki]: GObject auf Wikipedia: \url{http://en.wikipedia.org/wiki/GObject}
 
 Das hat nicht nur den Vorteil, dass die Bibliothek jetzt
 konsistent Objekte nutzt, sondern diese Objekte können auch mittels
@@ -625,7 +656,9 @@ ob er eine volle Kopie davon hat.
 Auch viele andere ``GObject`` basierte Bibliotheken sind über diese
 Schnittstelle angebunden. Ein prominentes Beispiel ist ``Gtk+``.
 
-**Einsatz:** Ist ``libmoosecat`` installiert kann man es von Python aus benutzt werden: 
+#### Einsatz in Snøbær:
+
+Ist ``libmoosecat`` installiert kann man es von Python aus benutzt werden: 
 
 ```python
 >>> from gi.repository import Moose
@@ -699,13 +732,31 @@ Beispiel oben.
 | `duration`     | `d`           | Dauer in Sekunden            |
 | `date`         | `y`           | Releasedatum                 |
 | `track`        | `r`           | Tracknummer                  |
-| uri            | u             | Songpfad                     |
+| `uri`          | `u`           | Songpfad                     |
 
 # Entwicklungsumgebung
 
 ## Tests
 
-test mpd server.
+Für Testzwecke wurde ein Skript entwickelt (``tests/mpd/mpd.py``), welches eine
+Testdatenbank aus einer JSON--Datei generiert und die `mpd`--Binary damit
+füttert. Der derart gestartete Server ist dann auf Port ``6666`` erreichbar.
+Für Testzwecke werden automatisch zwei Playlisten angelegt und der Inhalt der
+Datenbank der Queue hinzugefügt. Da der MPD Audiodaten zum Abspiel benötigt
+wird für jedes Lied eine stille Audiodatei von zwei Minuten Länge kopiert.
+Das führt beim Testen dazu, dass jedes Lied gleich an ist und keinerlei
+Audioausgabe zu hören sein wird.
+
+Aktuell bestehen die Testdaten rein aus Metadaten wie `Artist`, `Album`, `Genre`
+etc. Diese werden mittels einem Skript (``tests/mpd/create_testdb.py``) von
+Musicbrainz generiert, welches eine Datei mit Artist/Album/Genre--Kombinationen
+erwartet.
+
+Für das Starten der Tests wird `nose` verwendet. Ein simples `nosetests -s` ist
+ausreichend um alle Tests durchlaufen zu lassen.
+
+Die Optik des Frontends wurde mittels Desktop--PC (1920x1200) und einem Tablet
+(1920x1280) sowie einem Smartphone mit selbiger Auflösung rein optisch getestet.
 
 ## Inbetriebnahme via Docker
 
@@ -736,7 +787,39 @@ hinzugefügt werden bevor etwas abgespielt werden kann.
 
 ## Developement Tools
 
-bower, make file, coffee lint
+Die Entwicklung fand über GitHub statt. Entwickelt wurde unter *Fedora Linux 21*
+mit dem Editor *gVim* mit Python/CoffeeScript Plugins.
+
+Entgegen unserer Gewohnheiten haben wir kein TravisCI Repository aufgesetzt
+(bzw. kein funktionierendes), da sich `libmoosecat` in der VM von TravisCI nur
+schwerlich installieren ließ. Darunter litten leider auch unsere Tests, die sich
+momentan auf einige wenige Stubs beschränken. Durch die hohe Anzahl neuer
+Techniken, die wir erlernen mussten, gerieten diese leider etwas ins
+Hintertreffen.
+
+Für die Entwicklung wurden oft genutzte Kommandos in ein Makefile gepackt,
+folgende Targets sind vorhanden:
+ 
+ 
+| **Target**          |**Zweck**                                             |  
+| ------------------- |----------------------------------------------------- |  
+| `coffee`            |Kompiliert CoffeeScript und ruft `coffeelint` auf.    |  
+| `starbucks`         |Wiederholt `coffee` in einem while--Loop.             |  
+| `wind`              |Started Tornado--Webserver.                           |  
+| `comedy`            |Generiert diese Dokumentation mittels `pandoc`.       |  
+
+
+Für die verwendeten JavaScript--Bibiotheken wurde der Paketmanager `bower`
+verwendet der jeweils die einzelnen im [Frontend] erwähnten Komponenten
+herunterlädt und lokal installiert. In Snøbær's ``static``--Folder wurden dann
+symbolische Links auf die jeweiligen benötigten Komponenten angelegt.
+
+Für das Management der Python Abhängigkeiten wurde der pip3 verwendet. Das
+entsprechende `requirements.txt` liegt im Oberverzeichnis des Projektes.
+
+Für die Anzeige des Snøbær--Frontends nutzten wir Google Chrome. Firefox
+sollte prinzipiell auch funktionieren, wirkte aber nach kurzem Test etwas
+träger. 
 
 # Fazit
 
@@ -747,6 +830,9 @@ bower, make file, coffee lint
   verloren da der Container mit den Songreferenzen nicht bereinigt wird.
     
   Lösung: Umfangreiches Leaktesting ()
+
+- Momentan wird kein escaping der commands im frontend
+
 
 - Noch relativ langsam, da bei jedem Songwechsel die Queue refresht wird.
   Für einen Prototypen sollte die Performance allerdings ausreichen.
@@ -801,3 +887,44 @@ jedoch wäre an dieser Stelle womöglich eine ,,simplere'' Lösung wünschenswer
 die sich mit nur einem Framework realisieren lässt. 
 
 TODO: GObject vs. Cython, hohe Lernkurve aber sehr performante Kombination.
+
+### Projektstatistiken
+
+Die Analyse des Umfang des Projekts wurde mit dem Kommandozeilen Werkzeug `cloc`
+erstellt.
+
+**Snøbær:**
+
+| **Language**               | **files**         | **blank**      | **comment**       | **code** |
+| -------------------------- | ----------------- | -------------- | ----------------- | -------- |
+| Python                     | 16                | 492            | 239               | 1472     |
+| CoffeeScript               | 1                 | 90             | 37                | 393      |
+| HTML                       | 2                 | 48             | 40                | 378      |
+| CSS                        | 2                 | 26             | 12                | 369      |
+| **SUM:**                   | 21                | 656            | 328               | 2612     |
+
+
+Die von Herrn Pahl bereits vor längerer Zeit entwickelten C--Bibliotheken,
+welche für Snøbær verwendet werden:
+
+**libmoosecat:**
+
+| **Language**                 | **files**      | **blank**    | **comment**       | **code** |
+| ---------------------------- | -------------- | ------------ | ----------------- | -------- |
+| C                            | 33             | 2139         | 1655              | 8359     |
+| C/C++ Header                 | 25             | 388          | 1576              | 704      |
+| Python                       | 3              | 82           | 49                | 185      |
+| make                         | 1              | 10           | 0                 | 25       |
+| **SUM:**                     | 62             | 2619         | 3280              | 9273     |
+
+
+**libglyr:**
+
+| **Language**                 | **files**        | **blank**   | **comment**         | **code** |
+| ---------------------------- | ---------------- | ----------- | ------------------- | -------- |
+| C                            | 105              | 2514        | 3392                | 12488    |
+| Python                       | 20               | 141         | 533                 | 1052     |
+| C/C++ Header                 | 24               | 302         | 2070                | 594      |
+| CMake                        | 21               | 65          | 57                  | 541      |
+| Ruby                         | 1                | 22          | 24                  | 75       |
+| **SUM:**                     | 173              | 3760        | 6503                | 14832    |

@@ -2,7 +2,7 @@ coffee:
 	coffee -c snobaer/static/js/*.coffee
 	coffeelint snobaer/static/js/*.coffee
 
-coffees:
+starbucks:
 	while true; do \
 		coffee -c snobaer/static/js/*.coffee; \
 		coffeelint snobaer/static/js/*.coffee; \
@@ -13,5 +13,5 @@ coffees:
 wind:
 	python3 snobaer/__init__.py
 
-doc:
-	pandoc docs/documentation.md -H header.tex -N --filter pandoc-fignos -o documentation.pdf
+comedy:
+	pandoc docs/documentation.md -B title.tex -H header.tex -N --filter pandoc-fignos -o documentation.pdf
