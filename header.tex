@@ -8,9 +8,15 @@
 \usepackage{fancyhdr}
 \usepackage{ifthen}
 \usepackage[usenames,dvipsnames]{xcolor}
-
-\usepackage{geometry}
-\geometry{a4paper, top=1.5cm, left=2.5cm, right=3.0cm, bottom=2.0cm, includehead, includefoot}
+\usepackage[
+  paper=a4paper,
+  left=25mm,
+  right=25mm,
+  top=25mm,
+  bottom=25mm,
+  includefoot,
+  foot=\baselineskip,
+  bindingoffset=0mm]{geometry}
 
 \usepackage{setspace}
 \onehalfspacing
@@ -62,8 +68,6 @@
     }%
 }%
 
-% \setlength{\footskip}{0pt}
-
 % Remove the header from pages with chapters on them:
 \fancypagestyle{plain}{%
     \fancyhead{}
@@ -85,7 +89,7 @@
     \fancyhead[RE]{{\nouppercase{\slshape{\leftmark}}}}
 \fi
 
-\setlength{\topmargin}{-.5in}  %{-.5625in}
-\setlength{\footskip}{.25in} % to put page number 3/4" from the bottom of the page (1/4" from bottom of body text)
-\setlength{\textheight}{9in}
-\setlength{\textwidth}{6in}
+%\setlength{\topmargin}{-.5in}  %{-.5625in}
+\setlength{\footskip}{25pt} % to put page number 3/4" from the bottom of the page (1/4" from bottom of body text)
+%\setlength{\textheight}{9in}
+%\setlength{\textwidth}{6in}
