@@ -14,4 +14,4 @@ wind:
 	python3 snobaer/__init__.py
 
 comedy:
-	pandoc docs/documentation.md -B title.tex -H header.tex -N --filter pandoc-fignos -o documentation.pdf
+	pandoc docs/documentation.md -B title.tex -H header.tex -N --filter pandoc-fignos -o documentation.pdf -V lang=ngerman

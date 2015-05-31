@@ -1,7 +1,6 @@
 ---
 documentclass: scrartcl
 fontsize: 11pt
-lang: german
 sections: yes
 toc: yes
 date: \today
@@ -38,7 +37,12 @@ Bibliothek musste Herr Pahl erstmal parallel zur eigentlichen Studienarbeit
 Python--Bindings entwickeln. Durch diesem Umstand und durch den Umstand der
 ,,Agilen Webentwicklung'' wurde für die Entwicklung der Studienarbeit
 *Pair--Programming* angewandt --- die git logs stimmten so nicht mit den
-tatsächlichen Arbeitsweise überein.
+tatsächlichen Arbeitsweise direkt überein.
+
+Im Folgenden werden die wichtigsten Aspekte des Projekts behandelt, eine
+Behandlung bis ins kleinste Detail würde den Rahmen der Studienarbeit sprengen.
+Wir versuchen trotzdem die interessanten Teile herauszustellen und mit
+Referenzen für weitere Details zu unterfüttern.
 
 [^mpdclientspage]: Liste mit MPD--Clients: \url{http://mpd.wikia.com/wiki/Clients}
 [^volumiopage]: Volumio Webpage: \url{https://volumio.org/}
@@ -540,20 +544,22 @@ die nicht direkt von `Tornado` bearbeitet worden an `Flask` weiterzuleiten.
 Konkret behandelt `Tornado` bei uns nur alle Websocketanfragen, alle anderen
 Anfragen werden über WSGI direkt an `Flask` weitergeleitet. 
 
-Weiterhin werden folgende Python--Bibliotheken für Snøbær verwendet:
+Insgesamt werden folgende Python--Bibliotheken für Snøbær verwendet:
 
-| **Bibiothek**       | **Einsatzzweck**                                    |
-| ------------------- | --------------------------------------------------- |
-| `flask-bootstrap`   | Bootstrap in Flask integrieren.                     |
-| `pyxdg`             | for defining the correct cache path (optional)      |
-| `colorlog`          | Farbige Logdatei (optional)                         |
-| `mutagen`           | Für mpd Testserver (optional)                       |
-| `nose`              | Testframework für Python.                           |
-| `pyaml`             | Yaml Formate lesen und schreiben.                   |
-| `PyGObject`         | Abhänigigkeit von libmoosecat.                      |
-| `docopt`            | Kommandozeilen Optionsparser.                       |
-| `uptime`            | Systeminformationen Dialog.                         |
-| `psutil`            | Systeminformationen Dialog.                         |
+| **Bibiothek**       | **Version**  | **Einsatzzweck**                                    |
+| ------------------- | -----------  | --------------------------------------------------- |
+| `flask`             | `>=0.10.1  ` | Webframework.                                       |
+| `tornado`           | `>=4.1     ` | Webserver.                                          |
+| `flask-bootstrap`   | `>=3.3.4.1 ` | Bootstrap in Flask integrieren.                     |
+| `pyxdg`             | `>=0.25    ` | for defining the correct cache path (optional)      |
+| `colorlog`          | `>=2.6.0   ` | Farbige Logdatei (optional)                         |
+| `mutagen`           | `>=1.29    ` | Für mpd Testserver (optional)                       |
+| `nose`              | `>=1.3.6   ` | Testframework für Python.                           |
+| `pyaml`             | `>=3.11    ` | Yaml Formate lesen und schreiben.                   |
+| `PyGObject`         | `>=3.16.1  ` | Abhänigigkeit von libmoosecat.                      |
+| `docopt`            | `>=0.6.2   ` | Kommandozeilen Optionsparser.                       |
+| `uptime`            | `>=3.0.1   ` | Systeminformationen Dialog.                         |
+| `psutil`            | `>=2.2.1   ` | Systeminformationen Dialog.                         |
 
 Als problematisch stellte sich noch die Existenz zweier verschiedener Mainloops
 heraus. `libmoosecat` nutzt den weit verbreiteten GLib--Mainloop[^glibmainloop]
@@ -562,7 +568,7 @@ Integration für viele andere Mainloops--Implementationen, GLib ist aber nicht
 dabei. Daher wurde nach kurzer Suche der Code (gioloop.py[^gioloop]) zu unseren Zwecken
 angepasst. Er wurde zu PyGObject portiert und ein paar kleinere Bugfixes wurden
 eingebracht. Dieser Mainloop ist ein Adapter der kompatibel zur
-`Tornado`--IOLoop API, nutzt aber intern den `GLIb`--Mainloop.
+`Tornado`--IOLoop API, nutzt aber intern den `GLib`--Mainloop.
 
 
 [^glibmainloop]: GLib API: \url{https://developer.gnome.org/glib/stable/glib-The-Main-Event-Loop.html}
@@ -593,6 +599,54 @@ eingebracht. Dieser Mainloop ist ein Adapter der kompatibel zur
     \__ __init__.py      # It's a package.
 ```
 
+Die Datei ``__main__.py`` implementiert die Kommandozeilenanwendung die zum
+Starten des Backends dient. Die einzelnen Optionen und Argumente werden
+automatisch von `docopt`[^docopt] aus folgendem Hilfstext extrahiert:
+
+```bash
+Snøbær is a neat web mpd client.
+
+This is the server side application.
+
+Usage:
+    snobaer
+    snobaer [options] [-v...] [-V...]
+    snobaer -H | --help
+    snobaer -? | --version
+    snobaer -l | --list-servers
+
+Options:
+    -h --host=<addr>         Define the MPD to connect to [default: localhost]
+    -p --port=<mpdport>      Define the MPDs port. [default: 6666]
+    -b --backend-port=<prt>  Define the backends port [default: 8080]
+    -l --list-servers        List all reachable MPD servers via Zeroconf.
+
+Misc Options:
+    -H --help            Show this help text.
+    -? --version         Show a summary about Snøbærs version.
+    -v --louder          Be more verbose (can be given more than once)
+    -V --quieter         Be less verbose (can be given more than once)
+
+Examples:
+
+    snobaer -l
+    snobaer -h localhost -p 6600 -v -b 8080
+```
+
+Die meisten Optionen sollten selbsterklärend sein, lediglich `-l` ist
+hervorzuheben. Diese Option listet die in einem Netzwerk verfügbaren MPD--Server
+mittels Zeroconf auf. Dazu wird ein laufender Avahi--Daemon vorausgesetzt und
+die MPD--Server müssen entsprechend konfiguriert sein.
+
+Zuletzt sei noch das ``logger`` Modul erwähnt, dass den eingebauten
+Standard--Python Logger nutzt um Nachrichten von ``libmoosecat`` zu einem
+gemeinsamen ,,Bus'' zusammenzuführen. Zudem besticht er durch seine ästhetische
+Optik und dem Einsatz von Unicodesymbolen. Sie wissen schon warum.
+
+![``logger.py`` in Aktion](docs/pics/logger.png)
+
+[^docopt]: http://docopt.org/
+
 ### MPD--backend
 
 Da Herr Pahl bereits als Nebenprojekt eine freie C--Bibliothek zur einfachen
@@ -619,9 +673,10 @@ bietet.
 - Eine erweitere Syntax zum Abfragen der Ergebnisse (ermöglicht einfache
   Volltextsuche).
 - Effiziente Autovervollständigung mittels Patricia-Tries.
-- Integration von ``libglyr`` (Eine weitere Bibliothek von Herrn Pahl TODO)
+- Integration von ``libglyr``[^libglyr] (Eine weitere Bibliothek von Herrn Pahl, welche
+  musikrelevante Metadaten aus dem Internet von verschiedenen Seiten beschafft).
 - Zeroconf search: MPD Server können automatisch im Netz gefunden werden, ohne
-- In Arbeit: Gtk+-3.0 Integration um eine sehr schnelles Playlistwidget zum
+- In Arbeit: `Gtk+-3.0`--Integration um eine sehr schnelles Playlistwidget zum
   Darstellen großer Datenbanken bereitzustellen, welches sich bereits beim
   Eintippen der Suchanfrage aktualisiert.
 
@@ -635,6 +690,7 @@ objektorientierte Programmiersprache ``C``. Der Umbau zu ``GObject`` wurde
 jedoch durch andere Projekte und Tätigkeiten unterbrochen, daher bot Snøbær eine
 gute Gelegenheit die Arbeit wieder aufzunehmen.
 
+[^libglyr]: https://github.com/sahib/glyr
 [^GObject_wiki]: GObject auf Wikipedia: \url{http://en.wikipedia.org/wiki/GObject}
 
 Das hat nicht nur den Vorteil, dass die Bibliothek jetzt
@@ -655,6 +711,10 @@ ob er eine volle Kopie davon hat.
 
 Auch viele andere ``GObject`` basierte Bibliotheken sind über diese
 Schnittstelle angebunden. Ein prominentes Beispiel ist ``Gtk+``.
+Im Vergleich zu Cython ist `GObject Introspection` zwar langsamer beim Aufruf
+vieler Methoden, jedoch bietet es den großen Vorteil, dass die Bindings
+vollständig (und falls die Headerkommentare korrekt waren) und korrekt
+automatisch generiert werden können. 
 
 #### Einsatz in Snøbær:
 
@@ -755,6 +815,8 @@ erwartet.
 Für das Starten der Tests wird `nose` verwendet. Ein simples `nosetests -s` ist
 ausreichend um alle Tests durchlaufen zu lassen.
 
+TODO-elk: Tests adden; hier dokumentieren.
+
 Die Optik des Frontends wurde mittels Desktop--PC (1920x1200) und einem Tablet
 (1920x1280) sowie einem Smartphone mit selbiger Auflösung rein optisch getestet.
 
@@ -814,8 +876,8 @@ verwendet der jeweils die einzelnen im [Frontend] erwähnten Komponenten
 herunterlädt und lokal installiert. In Snøbær's ``static``--Folder wurden dann
 symbolische Links auf die jeweiligen benötigten Komponenten angelegt.
 
-Für das Management der Python Abhängigkeiten wurde der pip3 verwendet. Das
-entsprechende `requirements.txt` liegt im Oberverzeichnis des Projektes.
+Für das Management der Python Abhängigkeiten wurde `pip` für Python3 verwendet.
+Das entsprechende `requirements.txt` liegt im Oberverzeichnis des Projektes.
 
 Für die Anzeige des Snøbær--Frontends nutzten wir Google Chrome. Firefox
 sollte prinzipiell auch funktionieren, wirkte aber nach kurzem Test etwas
@@ -823,70 +885,124 @@ träger.
 
 # Fazit
 
-## Known Bugs
+Snøbær ist bereits ein funktionierender MPD--Client. Leider ist seine
+Installation noch schwierig und viele kleine Fehler sind noch enthalten. Trotz
+mangelnder Erfahrung im Bereich der Webprogrammierung ist ein ansehnlicher
+Prototyp entstanden. 
+
+## Bekannte Fehler
+
+Ein Teil der Fehler sind uns selbst noch aufgefallen, doch aufgrund fehlender
+Zeit und teils aufwendiger Lösung werden diese hier nur dokumentiert statt
+direkt berichtigt zu werden:
     
-- Einige Memory leaks (hauptsächlich durch Python Wrapper bedingt, da
-  falsches refcounting). Momentan werden etwa 10kb bei einer Suchoperation
-  verloren da der Container mit den Songreferenzen nicht bereinigt wird.
+* Einige kleine und mittlere Speicherlecks. Diese entstehen hauptsächlich durch
+  den GObject--Introspection Wrapper, bzw. durch falsche Headerkommentare. In
+  machen Fällen werden noch zuviele Referenzen auf ein Objekt gehalten, so dass
+  es nicht bereinigt werden kann.
+
+  Momentan werden etwa 10kb bei einer Suchoperation verloren da der Container
+  mit den Songreferenzen nicht bereinigt wird.
     
-  Lösung: Umfangreiches Leaktesting ()
+  **Lösung:** Umfangreiches Leaktesting mittels automatisierter Tests. Diese
+  führen eine Operation mehrmals aus und prüfen ob der Prozessspeicher signifikant
+  angestiegen ist. Zum Debuggen wird bereits manuell `valgrind`[^valgrind] eingesetzt.
 
-- Momentan wird kein escaping der commands im frontend
+[^valgrind]: Webpräsenz von valgrind: \url{http://valgrind.org/}
 
+* Momentan werden die Kommandos im Frontend noch nicht korrekt escaped. Bei einem
+  Kommand wie `"('add', 'file://some'file_with_quotes')"` würde die Ausführung
+  fehlschlagen. 
 
-- Noch relativ langsam, da bei jedem Songwechsel die Queue refresht wird.
+  **Lösung:** In den meisten Fällen sollte es reichen `'` mit `\'` zu ersetzen.
+  Eventuell sind allerdings noch weitere Anpassungsarbeiten hier zu machen.
+
+* Die Bitrate auf der `Playing`--Seite wird nicht dynamisch aktualisert. 
+
+  **Lösung:** Bitrate Information im Backend aus der Status--Nachricht
+  ausgliedern und in die Heartbeat--Nachricht einbetten.
+
+* Der Prototyp ist noch relativ langsam, da bei jedem Songwechsel die Queue
+  aktualisiert wird. Dies hat den simplen Grund, dass der aktuelle Song richtig
+  gehighlighted werden muss und dies auf die Schnelle der einfachste Weg war.
   Für einen Prototypen sollte die Performance allerdings ausreichen.
 
-  Lösung: Updates der Queue nach Möglichkeit vermeiden. Beispielsweise beim
-  Songwechsel einfach einen anderen Song highlighten und die highlight
-  Klasse des alten Songs entfernen.
+  **Lösung:** Aktualisierung der Queue nach Möglichkeit vermeiden.
+  Beispielsweise beim Songwechsel einfach einen anderen Song highlighten und die
+  `highlight`--Klasse des alten Songs entfernen.
 
-- Sollte ein Song doppelt in der Queue doppelt vorhanden sein, wird er auch
+* Sollte ein Lied doppelt in der Queue vorhanden sein, wird er auch
   doppelt gehighlighted falls er abgespielt wird.
 
-  Lösung: die zu highlightende row anhand der queue position bestimmten,
-  nicht der song id.
+  **Lösung:** Die hervorzuhebende Zeile anhand der Queue--Position
+  (`status.song['queue-pos']`) bestimmten und nicht an der
+  positions-unabhängigen Song--ID.
 
-- Gelegentliche crashes, ebenfalls durch reference counting verursacht.
+* Gelegentliche Abstürze, meist aufgrund von fehlerhaften Reference counting.
+  Manchmal wird kein Speicherleck verursacht, sondern ein Objekt hat weniger
+  Referenzen als erwartet und wird daher vorzeitig bereinigt. 
 
-  Lösung: Viele Stunden Debugging und Tests.
+  **Lösung:** Viele Stunden Debugging und Tests schreiben.
       
 ## Mögliche Erweiterungen und Verschönerungen
 
-Liste der Erweiterungen fast länger als die restliche Arbeit.
-Moosecat und co. bieten prinzipiell weitaus mehr Features als im Frontend
-realisiert wurden.
+### Verbesserungen
 
-- Tests. 
-- Filterbare *stored playlists*.
-- Einbau von *libmunin*
-- Dateibrowser für die Datenbankansicht.
-- Support um zu mehreren MPD Servern zu connecten.
-  Momentan muss der MPD Server beim Starten des Backends angegeben werden. 
-  Stattdessen könnte man im Frontend erst eine Auswahlmaske zeigen und dann
-  jeweils einen Worker im Backend für einen bestimmtes Backend zu instanziieren.
-  Zudem wäre etwas Locking--Arbeit vonnöten um zwei separate Zugriffe auf den
-  gleichen MPD--Server zu erlauben (momentan eine gemeinsame sqlite datenbank)
+Einige der bestehenden Features sind noch nicht zu unserer vollen Zufriedenheit
+gelöst. Es folgt eine Liste von Verbesserungsvorschlägen:
 
-- Momentan gibt das backend nur den link zur coverart zurück, um auch
-  offline arbeiten zu können sollte es aber einen link in der art von
-  ``<Snøbær-host>/metadata/cover/<artist>/<title>`` zurückgeben. Bei einem
-  GET auf diesen Link holt der Flask Teil das Coverart aus dem Cache und
-  liefert es aus.
+* Momentan gibt das Backend nur den Link zur Coverart aus dem Internet zurück.
+  Um auch offline arbeiten zu können sollte es aber einen Link in der Art von
+  ``<host>/metadata/cover/<artist>/<title>`` zurückgeben. Bei einem `GET` auf
+  diesen Link holt der Flask--Teil das Coverart aus dem Cache und liefert es
+  aus.
+* Wie bereits erwähnt sind die Tests noch eher stiefmütterlicher Natur.
+  Um eine weitere sorgenfreie Entwicklung zu gewährleisten müsste der aktuelle
+  Prototyp erst mit einer vernünftigen Testsuite versorgt werden.
+* Abgespeicherte Playlisten können momentan noch nicht durchsucht oder im Detail
+  angesehen werden, obwohl das Backend dies unterstützten würde.
 
-## Abschliessendes Resume
+### Erweiterungen
 
-Snøbær war unser erster ,,richtiger'' Ausflug in die Webprogrammierung. Vorher
-hatten wir mit dem Web nur am Rande zu tun (Katzen auf Imgur anschauen). Auch
-wenn wir den Eindruck hatten dass die Webprogrammierung oft leicht chaotisch und
-,,hacky'' wirkt (häufiges CSS--Gefrickel etc.) ließ sich in recht kurzer Zeit
-ein funktionierender Prototyp entwickeln. Dank des modularen Ansatzes von Flask,
-ließ sich das Framework um die gewünschte Funktionalität ,,recht einfach''
-erweitern. Die Kombination für das Backend mit Tornado funktioniert soweit gut,
-jedoch wäre an dieser Stelle womöglich eine ,,simplere'' Lösung wünschenswert
-die sich mit nur einem Framework realisieren lässt. 
+Die Liste der Erweiterungen könnte fast länger sein als die restliche Arbeit.
+``libmoosecat`` bietet weitaus mehr Features als im Frontend realisiert wurden. 
 
-TODO: GObject vs. Cython, hohe Lernkurve aber sehr performante Kombination.
+* Integration von `libmunin`[^libmunin]. `libmunin` ist eine von Herrn Pahl
+  in seiner Bachelorarbeit[^libmunin_ba] entwickelte Python--Bibliothek um Musikempfehlungen
+  zu berechnen. Dazu nutzt es alle verfügbaren Metadaten über das Lied (von
+  Genre über Songtext bis hin zu den Audiodaten) um eine Ähnlichkeit zwischen
+  Liedern festzustellen. Diese Lieder werden dann in einem Graphen angeordnet um
+  daraus Empfehlungen abzuleiten. Im Kontext von Snøbær könnte dies genutzt
+  werden um Vorschläge für ähnliche Lieder anzuzeigen.
+* Momentan ist das Frontend auf das Abspielen von Alben spezialisiert. Der MPD
+  kann allerdings auch Webradio--Streams, Spotify--Songs und Ähnliches abspielen. In diesem Fall
+  liegen meist keine oder weniger Metadaten über das aktuell spielende Stück
+  vor, was in der momentanen Anzeige unschön aussehen würde. 
+  Eine alternative Ansicht für diese Fälle wäre hier von Nöten.
+
+* Viele Musiksammlungen haben bereits eine hierarchische Ordnung auf Dateisystemebene
+  (Beispiel: `/<year>/<artist>/<album>/<title.ogg>`). Besonders Tools wie
+  `beets`[^beets] helfen eine entsprechende Ordnung herzustellen. 
+  Snøbær könnte dies unterstützten, indem es in der Datenbankansicht einen
+  Dateibrowser--Modus anbietet.
+
+* Unterstützung mehrerer MPD--Server. Momentan kann sich Snøbær nur zu einem
+  MPD--Server pro Backend--Instanz verbinden. Die Adresse und Port von diesem muss beim
+  Start des Backends explizit angegeben werden. Hier würden sich Profile gut
+  eignen um dies zu personalisieren. Das Frontend könnte dann über eine
+  Auswahlmakse den Nutzer fragen zu welchen MPD--Daemon er sich verbinden
+  möchte. Das Backend würde dann das entsprechende Profil laden und sich erst
+  beim Aufbau des Websockets sich verbinden. Später kann man die Verbindung
+  wieder trennen und zu einem anderen Server wechseln.
+  Dies würde etwas Arbeit erfordern, da momentan noch konkurrente Zugriffe auf den
+  ``sqlite``--Cache möglich sind.
+
+* Portierung zu Noobstrap, einer vereinfachten Bootstrap Variante von Herrn
+  Pahl. War nur'n Witz.
+
+[^libmunin]: \url{http://libmunin.readthedocs.org/en/latest/}
+[^libmunin_ba]: \url{http://libmunin.readthedocs.org/en/latest/docs.html}
+[^beets]: \url{http://beets.radbox.org/}
 
 ### Projektstatistiken
 
@@ -905,7 +1021,8 @@ erstellt.
 
 
 Die von Herrn Pahl bereits vor längerer Zeit entwickelten C--Bibliotheken,
-welche für Snøbær verwendet werden:
+welche für Snøbær verwendet werden. Die seit der Entwicklung von Snøbær
+dazugekommen Zeilen lassen sich nur schwer bestimmen.
 
 **libmoosecat:**
 
@@ -920,6 +1037,9 @@ welche für Snøbær verwendet werden:
 
 **libglyr:**
 
+Hier ist kein weiterer Quellcode dazugekommen. Allerdings würden einige Provider
+ein Update dringend benötigen.
+
 | **Language**                 | **files**        | **blank**   | **comment**         | **code** |
 | ---------------------------- | ---------------- | ----------- | ------------------- | -------- |
 | C                            | 105              | 2514        | 3392                | 12488    |
@@ -928,3 +1048,14 @@ welche für Snøbær verwendet werden:
 | CMake                        | 21               | 65          | 57                  | 541      |
 | Ruby                         | 1                | 22          | 24                  | 75       |
 | **SUM:**                     | 173              | 3760        | 6503                | 14832    |
+
+## Abschliessendes Resume
+
+Snøbær war unser erster ,,richtiger'' Ausflug in die Webprogrammierung. Vorher
+hatten wir mit dem Web nur am Rande zu tun (Katzen auf Imgur anschauen). Auch
+wenn wir den Eindruck hatten dass die Webprogrammierung oft leicht chaotisch und
+,,hacky'' wirkt (häufiges CSS--Gefrickel etc.) ließ sich in recht kurzer Zeit
+ein funktionierender Prototyp entwickeln. 
+
+Wir hoffen Snøbær auch später für eigene Zwecke noch weiterzuentwickeln sobald
+sich dafür die Zeit findet. 
