@@ -126,11 +126,11 @@ class InternalLogCatcher(GObject.Object):
 
 
 if __name__ == '__main__':
-    LOGGER = create_logger('Bärbel')
+    LOGGER = create_logger('Marc')
     LOGGER.setLevel(logging.DEBUG)
 
-    LOGGER.critical('Hello, Im Herbert.')
-    LOGGER.error('Im a logger..')
-    LOGGER.warning('...and will guide you...')
-    LOGGER.info('...through the various logging levels.')
+    LOGGER.critical('A clitical error.')
+    LOGGER.error('Bad, but not clitical.')
+    LOGGER.warning('I think stackoverflow is down?!')
+    LOGGER.info('Ah, back again.')
     LOGGER.debug('Oh, you can see debug messages too?')

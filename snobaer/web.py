@@ -79,3 +79,8 @@ def sysinfo():
 @FLASK_APP.route('/css/<path:name>')
 def deliver_css(name):
     return send_from_directory('static/css', name)
+
+
+@FLASK_APP.errorhandler(404)
+def page_not_found(_err):
+    return render_template('404.html'), 404
