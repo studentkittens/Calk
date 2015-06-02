@@ -59,7 +59,7 @@ schaffen, welcher leichtgewichtig wie `ympd` ist und den Komfort von
 
 Da der Audiosetup in unserer Wohngemeinschaft auf einem Raspberry Pi basiert,
 ist es zudem wünschenswert, dass das Backend relativ ressourcenschonend ist um
-den recht begrenzten Arbeitsspeicher des Rechners (256MB) nicht zu überfüllen. 
+den recht begrenzten Arbeitsspeicher des Rechners *(max. 256MB)* nicht zu überfüllen. 
 
 ## Namensgebung und Logo
 
@@ -222,10 +222,12 @@ dargestellt. Beim Drücken von diesem wird die Playlist in die Queue geladen. De
 ## *Modale Dialoge* Übersicht
 
 Zur weiteren Übersicht zeigt Abbildung @fig:modaldialogs die in
-Snøbær vorhandenen modalen Dialoge. 
+Snøbær vorhandenen modalen Dialoge. Sollte die Verbindung zum Backend verloren
+gehen, so wird zusätzlich die Meldung in @fig:connectionlost angezeigt.
 
 ![Modale Dialoge](docs/pics/modal_overview.png) {#fig:modaldialogs}
 
+![Dialog bei verlorener Verbindung](docs/pics/modal_connectionlost.png) {#fig:connectionlost}
 
 # Architektur
 
@@ -827,7 +829,19 @@ Es stehen folgende Attribute für die Suche zur Verfügung:
 | `track`        | `r`           | Tracknummer                  |
 | `uri`          | `u`           | Songpfad                     |
 
-\newpage 
+### Beispiele
+
+Diese Syntax kann in manchen Fällen auf interessante Weise eingesetzt werden,
+wie folgende Tabelle zeigt:
+
+| **Query**                     | **Erklärung**                                     |
+|-------------------------------|---------------------------------------------------|
+| `g:rock ! g:medieval`         |  `rock` aber nicht `Medieval Rock` (`In Extremo`) |
+| `date:2015`                   | Alles aus diesem Jahr anzeigen.                   |
+| `* ! *`                       | Alles und nicht alles. Also nichts.               |
+| `a:Kn*`                       | Findet alle Songs vom Artist `Knorkator`          |
+| `t:Ich + Medien Butter Bread` | `Ich mach was mit Medien`                         |
+| `hefty | (g:pop ! pop)`       | `Lana Del Ray` und `Bloodhound Gang`              |
 
 # Entwicklungsumgebung
 
@@ -1041,8 +1055,8 @@ Die Liste der Erweiterungen könnte fast länger sein als die restliche Arbeit.
   Dies würde etwas Arbeit erfordern, da momentan noch konkurrente Zugriffe auf den
   ``sqlite``--Cache möglich sind.
 
-* Portierung zu Noobstrap, einer vereinfachten Bootstrap Variante von Herrn
-  Pahl. War nur'n Witz. TODO: anderer Witz.
+* Portierung zu *EspressoScript*, einer Programmiersprache von Herrn Pahl für das Web 3.0.
+  War bloß ein Witz.
 
 [^libmunin]: \url{http://libmunin.readthedocs.org/en/latest/}
 [^libmunin_ba]: \url{http://libmunin.readthedocs.org/en/latest/docs.html}
@@ -1093,13 +1107,34 @@ ein Update dringend benötigen.
 | Ruby                         | 1                | 22          | 24                  | 75       |
 | **SUM:**                     | 173              | 3760        | 6503                | 14832    |
 
-## Abschliessendes Resume
+## Abschliessendes Resume und Ausblick
 
 Snøbær war unser erster ,,richtiger'' Ausflug in die Webprogrammierung. Vorher
 hatten wir mit dem Web nur am Rande zu tun (Katzen auf Imgur anschauen, HTML
 parsen). Auch wenn wir den Eindruck hatten dass die Webprogrammierung oft leicht
 chaotisch und ,,hacky'' wirkt (häufiges CSS--Gefrickel etc.) ließ sich in recht
 kurzer Zeit ein funktionierender Prototyp entwickeln. 
+
+Die Anforderung der niedrigen Speichernutzung wurde (zmd. auf Backend--Seite wo
+es wichtig für uns war) erfüllt. Mit der vollen Musiksammlung (etwa )
+verbrauchte das Backend etwa *150MB* physischen Hauptspeicher.
+Zum Vergleich: Der Testsetup kam auf etwa *35MB*. Ein Großteil dieser Optimierung
+kommt dabei durch den Umstand, dass die Speicherung der Daten auf C--Seite
+geschieht und nur zur Anzeige zu *,,teuren''* Python--UCS4--Strings konvertiert
+werden.
+
+Dies ist sicherlich auch noch optimierungsfähig. Beispielsweise könnte auf Seite
+von `libmoosecat` einige Tags die sich oft wiederholen (`Artist`, `Album`,
+`Genre`) zur Kompression in einem Patricia Trie abgelegt werden. 
+
+Auf Frontendseite müsste die Darstellung und das Laden großer Songlisten
+optimiert werden. Die Anzeige unserer eigentlichen Musikdatenbank überfordert
+momentan unser Frontend, und damit den Browser, völlig. 
+
+Zum einen könnte hier die erwähnte Vermeidung von Queue--Updates Abhilfe
+schaffen, andererseits könnten die Daten auch häppchenweise übertragen werden um
+eine flüssigere Anzeige zu gewährleisten. Sollte währenddessen ein neueres
+Updates nötig sein, könnte das alte Update auch unterbrochen werden.
 
 Wir hoffen Snøbær auch später für eigene Zwecke noch weiterzuentwickeln sobald
 sich dafür die Zeit findet. 
