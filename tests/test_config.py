@@ -1,11 +1,5 @@
 # encoding: utf-8
 
-"""
-A Simple Test for the config
-
-.. moduleauthor:: serztle <serztle@googlemail.com>
-"""
-
 TEST_CONFIG = '''
 active_profile: default
 paths:
@@ -21,8 +15,10 @@ profiles:
     timeout: 5.0
 '''
 
+# Stdlib:
 import unittest
-# from moosecat.config import Config, Profile
+
+# Internal:
 from snobaer.config import Config, Profile
 
 
@@ -148,7 +144,6 @@ class TestConfig(unittest.TestCase):
 class TestProfile(unittest.TestCase):
     def setUp(self):
         self.cfg = Config()
-        #self.cfg.load(TEST_CONFIG)
         self.cfg.add_defaults({
             'root': {},
             'current_profile': 'default'

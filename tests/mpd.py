@@ -106,7 +106,7 @@ def create_music_directory(music_dir, database):
 
     :database: a list of dictionaries containing appropiate tags.
     '''
-    mp3_file = os.path.join(SCRIPT_PATH, 'test.ogg')
+    mp3_file = os.path.join(SCRIPT_PATH, 'resources/test.ogg')
     for song in database:
         # Write a well named file into the test database
         new_filename = os.path.join(music_dir,
@@ -173,7 +173,7 @@ def create_dirstruct(root_path='/tmp'):
         create_config(top_dir, music_dir, playlist_dir)
 
         # Load the tags from urlaub.json.db
-        with open(os.path.join(SCRIPT_PATH, 'dummy.json.db'), 'r') as f:
+        with open(os.path.join(SCRIPT_PATH, 'resources/dummy.json.db'), 'r') as f:
             json_database = json.load(f)
 
         # fill some tagged mp3 in there
@@ -193,7 +193,6 @@ class MpdTestProcess:
         self._print = do_print
 
     def _spawn(self):
-        print(self._top_dir)
         command = 'mpd --no-daemon --stderr --verbose {conf_path}'.format(
                 conf_path=os.path.join(self._top_dir, CONFIG_NAME)
         )
