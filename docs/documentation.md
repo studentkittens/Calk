@@ -862,13 +862,21 @@ Musicbrainz generiert, welches eine Datei mit Artist/Album/Genre--Kombinationen
 erwartet.
 
 Für das Starten der Tests wird `nose` verwendet. Ein simples `nosetests -s` ist
-ausreichend um alle Tests durchlaufen zu lassen.
+ausreichend um alle momentan vorhandenen Tests durchlaufen zu lassen. 
+Obwohl bereits eine Basis für die Testentwicklung vorhanden ist, sind die
+vorhandenen Tests spärlich wie folgende kurze Tabelle zeigt:
 
-TODO-elk: Tests adden; hier dokumentieren.
+| **Datei**              | **Vorhandene Tests**                                                                           |
+|------------------------| -----------------------------------------------------------------------------------------------|
+| `tests/test_config.py` | Testet YAML--Configmodul und noch nicht implementierte Profilfunktionen                        |
+| `tests/test_client.py` | Schickt mittels `faker` generierte Kommandos an `libmoosecat` um Fehlerbehandlung zu triggern. |
 
-Die Optik des Frontends wurde mittels Desktop--PC (1920x1200) und einem Tablet
-(1920x1280) sowie einem Smartphone mit selbiger Auflösung rein optisch getestet.
-Allgemein sind für das Frontend leider noch keine Tests vorhanden.
+Zukünftige Blackbo--Tests sollten sich mit dem Backend mittels Websocket
+verbinden und so eine Testkommunikation herstellen.
+
+Die Optik des Frontends wurde mittels Desktop--PC (`1920x1200`) und einem Tablet
+(`1920x1280`) sowie einem Smartphone mit selbiger Auflösung rein optisch
+getestet. Allgemein sind für das Frontend leider noch keine Tests vorhanden.
 
 ## Inbetriebnahme via Docker
 
@@ -881,13 +889,13 @@ Der Container kann folgendermaßen in Betrieb genommen werden:
 
 ```bash
 $ docker pull sahib/snobaer
-$ docker run -p 6666:6666 -p 8080:8080 sahib/snobaer /bin/sh /start.sh
+$ docker run -p 6666:6666 -p 8080:8080 --name snowbear sahib/snobaer /bin/sh /start.sh
 ```
 
 Sollte alles geklappt haben kann die Weboberfläche unter
 ``http://localhost:8080`` aufgerufen werden. Im Container ist ebenfalls der
 MPD--Testserver enthalten, der mit einem gewöhnlichen MPD--Client ihrer Wahl
-(unter Port 6666) gesteuert werden kann. Eine Änderung in einem Client sollte
+(unter Port `6666`) gesteuert werden kann. Eine Änderung in einem Client sollte
 wie gesagt auch eine Änderung in Snøbær bewirken und umgekehrt.
 
 Da der Testserver immer die selbe leere Audiodatei abspielt (und noch zusätzlich
@@ -896,6 +904,12 @@ mit Snøbær keinen Sound hören.
 
 Unter Umständen müssen nach dem Starten noch Songs aus der Datenbank zur Queue
 hinzugefügt werden bevor etwas abgespielt werden kann.
+
+Später kann der Container wieder heruntergefahren werden:
+
+```bash
+$ docker stop -t 5 snowbear
+```
 
 ## Developement Tools
 
@@ -953,8 +967,8 @@ direkt berichtigt zu werden:
   machen Fällen werden noch zuviele Referenzen auf ein Objekt gehalten, so dass
   es nicht bereinigt werden kann.
   \
-  Momentan gehen etwa 10kb bei einer Suchoperation verloren da der Container
-  mit den Songreferenzen nicht bereinigt wird.
+  Das größte Speicherleck von etwa 10kb entsteht bei Suchoperationen, da der
+  Container mit den Songreferenzen nicht korrekt bereinigt wird.
   \
   \
   **Lösung:** Umfangreiches Leaktesting mittels automatisierter Tests. Diese
