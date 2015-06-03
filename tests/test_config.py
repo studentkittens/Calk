@@ -176,7 +176,3 @@ class TestProfile(unittest.TestCase):
             self.profile.add_profile('another_one', initial_value={'ancient_gods': 3})
             self.cfg.set('current_profile', 'another_one')
             self.assertEqual(self.profile.get('ancient_gods'), 3)
-
-
-if __name__ == '__main__':
-    unittest.main()
