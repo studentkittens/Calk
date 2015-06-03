@@ -876,7 +876,7 @@ vorhandenen Tests spärlich wie folgende kurze Tabelle zeigt:
 | `tests/test_client.py`   | Schickt mittels `faker` generierte Kommandos an \                                               |
 |                          | `libmoosecat` um Fehlerbehandlung zu triggern.                                                  |
 
-Zukünftige Blackbo--Tests sollten sich mit dem Backend mittels Websocket
+Zukünftige Blackbox--Tests sollten sich mit dem Backend mittels Websocket
 verbinden und so eine Testkommunikation herstellen.
 
 Die Optik des Frontends wurde mittels Desktop--PC (`1920x1200`) und einem Tablet
