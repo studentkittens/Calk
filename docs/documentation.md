@@ -871,7 +871,7 @@ vorhandenen Tests spärlich wie folgende kurze Tabelle zeigt:
 | `tests/test_config.py` | Testet YAML--Configmodul und noch nicht implementierte Profilfunktionen                        |
 | `tests/test_client.py` | Schickt mittels `faker` generierte Kommandos an `libmoosecat` um Fehlerbehandlung zu triggern. |
 
-Zukünftige Blackbo--Tests sollten sich mit dem Backend mittels Websocket
+Zukünftige Blackbox--Tests sollten sich mit dem Backend mittels Websocket
 verbinden und so eine Testkommunikation herstellen.
 
 Die Optik des Frontends wurde mittels Desktop--PC (`1920x1200`) und einem Tablet
@@ -892,7 +892,7 @@ $ docker pull sahib/snobaer
 $ docker run -p 6666:6666 -p 8080:8080 --name snowbear sahib/snobaer /bin/sh /start.sh
 ```
 
-Sollte alles geklappt haben kann die Weboberfläche unter
+Sollte alles geklappt haben kann die Weboberfläche nach einigen Sekunden unter
 ``http://localhost:8080`` aufgerufen werden. Im Container ist ebenfalls der
 MPD--Testserver enthalten, der mit einem gewöhnlichen MPD--Client ihrer Wahl
 (unter Port `6666`) gesteuert werden kann. Eine Änderung in einem Client sollte
