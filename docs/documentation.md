@@ -223,11 +223,11 @@ dargestellt. Beim Drücken von diesem wird die Playlist in die Queue geladen. De
 
 Zur weiteren Übersicht zeigt Abbildung @fig:modaldialogs die in
 Snøbær vorhandenen modalen Dialoge. Sollte die Verbindung zum Backend verloren
-gehen, so wird zusätzlich die Meldung in @fig:connectionlost angezeigt.
+gehen, so wird zusätzlich die Meldung ,,Connection lost!'' angezeigt.
 
 ![Modale Dialoge](docs/pics/modal_overview.png) {#fig:modaldialogs}
 
-![Dialog bei verlorener Verbindung](docs/pics/modal_connectionlost.png) {#fig:connectionlost}
+\newpage
 
 # Architektur
 

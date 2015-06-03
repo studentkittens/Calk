@@ -1,29 +1,32 @@
 \begin{titlepage}
+\pagecolor{titlepagecolor}
 \begin{center}
 
+\bf
 % Upper part of the page. The '~' is needed because \\
 % only works if a paragraph has started.
-\includegraphics[width=0.15\textwidth]{docs/pics/logo.png}~\\[1cm]
-\textsc{\LARGE Hochschule Augsburg}\\[1.5cm]
-\textsc{\Large Agile Webanwendungen mit Python}\\[0.5cm]
+\includegraphics[width=0.25\textwidth]{docs/pics/logo.png}~\\[1cm]
+\color{white}
+\textsc{\huge Hochschule Augsburg}\\[1.5cm]
+\textsc{\LARGE Agile Webanwendungen mit Python}\\[0.5cm]
 
 % Title
 \rule{\linewidth}{0.5mm}
-{ \huge \bfseries Der Web--MPD--Client Snøbær\\[0.4cm] }
+{\Huge \bfseries Der Web--MPD--Client Snøbær\\[0.4cm] }
 \rule{\linewidth}{0.5mm}
 
 % Author and supervisor
 \noindent
 \begin{minipage}[t]{0.4\textwidth}
-\begin{flushleft} \large
+\begin{flushleft} \Large
 \emph{Studenten:}\\
-Christopher \textsc{Pahl}\\Christoph \textsc{Piechula}
+\textnormal{Christopher \textsc{Pahl}\\Christoph \textsc{Piechula}}
 \end{flushleft}
 \end{minipage}%
 \begin{minipage}[t]{0.4\textwidth}
-\begin{flushright} \large
+\begin{flushright} \Large
 \emph{Dozent:} \\
-Erich \textsc{Seifert}
+\textnormal{Erich \textsc{Seifert}}
 \end{flushright}
 \end{minipage}
 
@@ -33,3 +36,4 @@ Erich \textsc{Seifert}
 {\large \today}
 \end{center}
 \end{titlepage}
+\nopagecolor
