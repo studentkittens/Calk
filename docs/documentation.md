@@ -699,6 +699,8 @@ dass die gesamte, doch recht komplizierte, Fehlerbehandlung und Kommunikation
 auf einer gemeinsamen Code-Basis basiert, die definierte Schnittstellen nach außen
 bietet.
 
+\newpage 
+
 ``libmoosecat`` baut auf ``libmpdclient`` auf um folgende Features zu ermöglichen:
 
 - Konsistente API zu den wichtigsten MPD--Funktionen ohne sich mit dem
@@ -750,6 +752,8 @@ Im Vergleich zu Cython ist `GObject Introspection` zwar langsamer beim Aufruf
 vieler Methoden, jedoch bietet es den großen Vorteil, dass die Bindings
 vollständig und (falls die Headerkommentare korrekt waren) korrekt
 automatisch generiert werden können. 
+
+\newpage 
 
 #### Einsatz in Snøbær:
 
@@ -866,10 +870,11 @@ ausreichend um alle momentan vorhandenen Tests durchlaufen zu lassen.
 Obwohl bereits eine Basis für die Testentwicklung vorhanden ist, sind die
 vorhandenen Tests spärlich wie folgende kurze Tabelle zeigt:
 
-| **Datei**              | **Vorhandene Tests**                                                                           |
-|------------------------| -----------------------------------------------------------------------------------------------|
-| `tests/test_config.py` | Testet YAML--Configmodul und noch nicht implementierte Profilfunktionen                        |
-| `tests/test_client.py` | Schickt mittels `faker` generierte Kommandos an `libmoosecat` um Fehlerbehandlung zu triggern. |
+| **Datei**                | **Vorhandene Tests**                                                                            |
+| ------------------------ | ----------------------------------------------------------------------------------------------- |
+| `tests/test_config.py`   | Testet YAML--Configmodul und noch nicht implementierte Profilfunktionen                         |
+| `tests/test_client.py`   | Schickt mittels `faker` generierte Kommandos an \                                               |
+|                          | `libmoosecat` um Fehlerbehandlung zu triggern.                                                  |
 
 Zukünftige Blackbo--Tests sollten sich mit dem Backend mittels Websocket
 verbinden und so eine Testkommunikation herstellen.
@@ -893,7 +898,7 @@ $ docker run -p 6666:6666 -p 8080:8080 --name snowbear sahib/snobaer /bin/sh /st
 ```
 
 Sollte alles geklappt haben kann die Weboberfläche unter
-``http://localhost:8080`` aufgerufen werden. Im Container ist ebenfalls der
+\url{http://localhost:8080} aufgerufen werden. Im Container ist ebenfalls der
 MPD--Testserver enthalten, der mit einem gewöhnlichen MPD--Client ihrer Wahl
 (unter Port `6666`) gesteuert werden kann. Eine Änderung in einem Client sollte
 wie gesagt auch eine Änderung in Snøbær bewirken und umgekehrt.
@@ -1130,10 +1135,10 @@ chaotisch und ,,hacky'' wirkt (häufiges CSS--Gefrickel etc.) ließ sich in rech
 kurzer Zeit ein funktionierender Prototyp entwickeln. 
 
 Die Anforderung der niedrigen Speichernutzung wurde (zmd. auf Backend--Seite wo
-es wichtig für uns war) erfüllt. Mit der vollen Musiksammlung (etwa )
+es wichtig für uns war) erfüllt. Mit der vollen Musiksammlung (etwa 56k Lieder)
 verbrauchte das Backend etwa *150MB* physischen Hauptspeicher.
 Zum Vergleich: Der Testsetup kam auf etwa *35MB*. Ein Großteil dieser Optimierung
-kommt dabei durch den Umstand, dass die Speicherung der Daten auf C--Seite
+kommt dabei durch den Umstand zustande, dass die Speicherung der Daten auf C--Seite
 geschieht und nur zur Anzeige zu *,,teuren''* Python--UCS4--Strings konvertiert
 werden.
 
