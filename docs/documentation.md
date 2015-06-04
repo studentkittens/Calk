@@ -582,7 +582,7 @@ Websocketanfragen[^backendpy], alle anderen Anfragen werden über WSGI direkt an
 
 Insgesamt werden folgende Python--Bibliotheken für Snøbær verwendet:
 
-| **Bibiothek**       | **Version**  | **Einsatzzweck**                                    |
+| **Bibliothek**      | **Version**  | **Einsatzzweck**                                    |
 | ------------------- | -----------  | --------------------------------------------------- |
 | `flask`             | `>=0.10.1  ` | Webframework.                                       |
 | `tornado`           | `>=4.1     ` | Webserver.                                          |
