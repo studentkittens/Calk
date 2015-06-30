@@ -42,7 +42,7 @@ class FrontedWSHandler(WebSocketHandler):
         self.last_song_id = None
 
     def open(self):
-        LOGGER.debug("WebSocket opened")
+        LOGGER.info("WebSocket opened")
 
         # Trigger an initial update event (a player event to be exact)
         self.on_client_event(self.client, Moose.Idle.PLAYER)

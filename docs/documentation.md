@@ -352,7 +352,7 @@ Abhängigkeiten zu vermeiden. In Retrospektive wäre JSON--RPC allerdings
 möglicherweise eine gute Ergänzung gewesen, um ein gutes Stück unnötige
 Fehlerbehandlung im Backend zu vermeiden.
 
-### Frontend → Backend
+### Frontend Backend
 
 Das Frontend kann prinzipiell vier verschiedene Nachrichten an das Backend
 abschicken. Diese Nachrichtentypen sind im Einzelnen:
@@ -425,7 +425,7 @@ Abfrage der `libmoosecat` Datenbank mittels Volltextsuche.
 }
 ```
 
-### Backend → Frontend
+### Backend Frontend
 
 Das Backend kann prinzipiell vier verschiedene Nachrichten an das Frontend
 abschicken. Diese Nachrichtentypen sind im Einzelnen:
