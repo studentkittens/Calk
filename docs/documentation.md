@@ -37,12 +37,13 @@ Bibliothek musste Herr Pahl erstmal parallel zur eigentlichen Studienarbeit
 Python--Bindings entwickeln. Durch den Umstand der ,,Agilen Webentwicklung''
 wurde für die Entwicklung der Studienarbeit *Pair--Programming* angewandt ---
 die git logs stimmen so nicht mit der tatsächlichen Arbeitsweise direkt
-überein.
+überein. 
 
 Im Folgenden werden die wichtigsten Aspekte des Projekts behandelt, eine
 Behandlung bis ins kleinste Detail würde den Rahmen der Studienarbeit sprengen.
 Wir versuchen trotzdem die interessanten Teile herauszustellen und mit
-Referenzen für weitere Details zu unterfüttern.
+Referenzen für weitere Details zu unterfüttern. Desweiteren möchten wir uns für
+die schlechten Witze in dieser Arbeit im Voraus entschuldigen.
 
 [^mpdclientspage]: Liste mit MPD--Clients: \url{http://mpd.wikia.com/wiki/Clients}
 [^volumiopage]: Volumio Webpage: \url{https://volumio.org/}
